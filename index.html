@@ -308,7 +308,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
     <div class="error-msg" id="paymethod-error-msg" style="display:none;">Please select a payment method.</div>
     <div class="venmo-box" id="venmo-details" style="display:none;">
       <div class="venmo-head"><span class="venmo-logo">Venmo</span> Pay via Venmo</div>
-      <div class="venmo-handle">@LillysLoaves</div>
+      <div class="venmo-handle">@lillydud</div>
       <div class="venmo-note">Send your total once you submit — include your <strong>order number</strong> in the Venmo note.</div>
       <div class="venmo-timing">⏰ Payment confirms your spot. Unpaid orders may be released after 24 hours.</div>
       <div class="field-group" style="margin-top:14px;margin-bottom:0;" id="fg-paid">
@@ -620,7 +620,7 @@ function submitOrder() {
     : 'Marblehead — 2000 Dorchester Dr (~6:00 PM ET)';
 
   var payNote = (paymethod === 'venmo')
-    ? 'Please send <strong>$' + total + '</strong> to <strong>@LillysLoaves</strong> on Venmo — use order number <strong>' + orderNum + '</strong> as your note.'
+    ? 'Please send <strong>$' + total + '</strong> to <strong>@lillydud</strong> on Venmo — use order number <strong>' + orderNum + '</strong> as your note.'
     : 'You chose <strong>cash at pickup</strong>. Please bring exact change (<strong>$' + total + '</strong>) and your order number.';
 
   document.getElementById('success-body').innerHTML =
@@ -636,7 +636,7 @@ function submitOrder() {
     '<br/><br/><strong>Total: $' + total + '</strong><br/><br/>' +
     payNote + '<br/><br/>Lilly can\'t wait to bake for you! 🍞';
 
-  // Send to Google Forms
+  // Send to Google Forms — individual qty columns + all other fields
   var fd = new FormData();
   fd.append('entry.477621901',  name);
   fd.append('entry.1188160679', phone);
@@ -644,7 +644,11 @@ function submitOrder() {
   fd.append('entry.15440025',   address);
   fd.append('entry.639923744',  city);
   fd.append('entry.954004769',  zip);
-  fd.append('entry.840313283',  orderLines.join(', '));
+  fd.append('entry.840313283',  String(parseInt(document.getElementById('plain').value   || 0)));
+  fd.append('entry.754841378',  String(parseInt(document.getElementById('jalapeno').value|| 0)));
+  fd.append('entry.735940338',  String(parseInt(document.getElementById('cinnamon').value|| 0)));
+  fd.append('entry.1878685418', String(parseInt((document.getElementById('pizza') || {value:'0'}).value || 0)));
+  fd.append('entry.1295480790', String(parseInt(document.getElementById('cookies').value || 0)));
   fd.append('entry.1001354712', '$' + total);
   fd.append('entry.1649470580', (pickup === 'medina') ? 'Medina' : 'Marblehead');
   fd.append('entry.4073665',    (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup');
