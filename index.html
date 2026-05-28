@@ -955,20 +955,20 @@
 
     PRODUCTS.pizza = { name: sp.name + ' (Weekly Special)', price: Number(sp.price) };
 
-    body.innerHTML = \`
+    body.innerHTML = `
       <div class="product-row" style="border-bottom:none;">
-        <div class="product-emoji">\${sp.emoji || '⭐'}</div>
+        <div class="product-emoji">${sp.emoji || '⭐'}</div>
         <div class="product-info">
-          <div class="product-name">\${sp.name} <span class="specialty-tag">This Week</span></div>
-          <div class="product-desc">\${sp.desc}</div>
+          <div class="product-name">${sp.name} <span class="specialty-tag">This Week</span></div>
+          <div class="product-desc">${sp.desc}</div>
         </div>
-        <div class="product-price">$\${sp.price}</div>
+        <div class="product-price">$${sp.price}</div>
         <div class="qty-wrap">
           <button type="button" class="qty-btn" onclick="changeQty('pizza',-1)">−</button>
           <input class="qty-input" type="number" id="pizza" value="0" min="0" max="10" oninput="updateSummary()"/>
           <button type="button" class="qty-btn" onclick="changeQty('pizza',1)">+</button>
         </div>
-      </div>\`;
+      </div>`;
   }
 
   // ── ADMIN FUNCTIONS ──────────────────────────────────────
@@ -1024,7 +1024,7 @@
     if (avail === 'no') {
       box.innerHTML = '<em>No special this week — section will be hidden.</em>';
     } else {
-      box.innerHTML = \`\${emoji} <strong>\${name}</strong> — \${desc} &nbsp;·&nbsp; <strong style="color:var(--crust)">$\${price}</strong>\`;
+      box.innerHTML = `${emoji} <strong>${name}</strong> — ${desc} &nbsp;·&nbsp; <strong style="color:var(--crust)">$${price}</strong>`;
     }
   }
 
