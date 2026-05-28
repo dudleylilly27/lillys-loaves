@@ -931,44 +931,63 @@
     available: 'yes'
   };
 
-  // Load special from localStorage (or fall back to default)
-  function loadSpecial() {
-    try {
-      const saved = localStorage.getItem('ll_weekly_special');
-      return saved ? JSON.parse(saved) : DEFAULT_SPECIAL;
-    } catch(e) { return DEFAULT_SPECIAL; }
-  }
+  // ── Google Sheet API URL for weekly special ──
+  const SPECIAL_API = 'https://script.google.com/macros/s/AKfycbzCCp9RiHv7_vP8K-ysFoWD3p8v54orwXFeom7k9ubiLqebsrNSzr8kFC31ID59oYaBwA/exec';
 
-  // Render the weekly special card
+  // Render the weekly special card from Google Sheet
   function renderSpecialCard() {
-    const sp = loadSpecial();
     const body = document.getElementById('special-body');
     const card = document.getElementById('special-card');
     if (!body || !card) return;
 
-    if (sp.available === 'no') {
-      body.innerHTML = '<div class="special-unavailable">No special this week — check back Saturday! 🍞</div>';
-      // Remove from PRODUCTS so it doesn't appear in summary
-      delete PRODUCTS.pizza;
-      return;
-    }
+    // Show loading state
+    body.innerHTML = '<div class="special-unavailable">Loading this week's special... 🍞</div>';
 
-    PRODUCTS.pizza = { name: sp.name + ' (Weekly Special)', price: Number(sp.price) };
+    fetch(SPECIAL_API)
+      .then(r => r.json())
+      .then(sp => {
+        if (sp.available === 'no') {
+          body.innerHTML = '<div class="special-unavailable">No special this week — check back Saturday! 🍞</div>';
+          delete PRODUCTS.pizza;
+          return;
+        }
 
-    body.innerHTML = `
-      <div class="product-row" style="border-bottom:none;">
-        <div class="product-emoji">${sp.emoji || '⭐'}</div>
-        <div class="product-info">
-          <div class="product-name">${sp.name} <span class="specialty-tag">This Week</span></div>
-          <div class="product-desc">${sp.desc}</div>
-        </div>
-        <div class="product-price">$${sp.price}</div>
-        <div class="qty-wrap">
-          <button type="button" class="qty-btn" onclick="changeQty('pizza',-1)">−</button>
-          <input class="qty-input" type="number" id="pizza" value="0" min="0" max="10" oninput="updateSummary()"/>
-          <button type="button" class="qty-btn" onclick="changeQty('pizza',1)">+</button>
-        </div>
-      </div>`;
+        PRODUCTS.pizza = { name: sp.name + ' (Weekly Special)', price: Number(sp.price) };
+
+        body.innerHTML = `
+          <div class="product-row" style="border-bottom:none;">
+            <div class="product-emoji">${sp.emoji || '⭐'}</div>
+            <div class="product-info">
+              <div class="product-name">${sp.name} <span class="specialty-tag">This Week</span></div>
+              <div class="product-desc">${sp.desc}</div>
+            </div>
+            <div class="product-price">$${sp.price}</div>
+            <div class="qty-wrap">
+              <button type="button" class="qty-btn" onclick="changeQty('pizza',-1)">−</button>
+              <input class="qty-input" type="number" id="pizza" value="0" min="0" max="10" oninput="updateSummary()"/>
+              <button type="button" class="qty-btn" onclick="changeQty('pizza',1)">+</button>
+            </div>
+          </div>`;
+      })
+      .catch(() => {
+        // Fall back to default if fetch fails
+        const sp = DEFAULT_SPECIAL;
+        PRODUCTS.pizza = { name: sp.name + ' (Weekly Special)', price: Number(sp.price) };
+        body.innerHTML = `
+          <div class="product-row" style="border-bottom:none;">
+            <div class="product-emoji">${sp.emoji || '⭐'}</div>
+            <div class="product-info">
+              <div class="product-name">${sp.name} <span class="specialty-tag">This Week</span></div>
+              <div class="product-desc">${sp.desc}</div>
+            </div>
+            <div class="product-price">$${sp.price}</div>
+            <div class="qty-wrap">
+              <button type="button" class="qty-btn" onclick="changeQty('pizza',-1)">−</button>
+              <input class="qty-input" type="number" id="pizza" value="0" min="0" max="10" oninput="updateSummary()"/>
+              <button type="button" class="qty-btn" onclick="changeQty('pizza',1)">+</button>
+            </div>
+          </div>`;
+      });
   }
 
   // ── ADMIN FUNCTIONS ──────────────────────────────────────
@@ -1036,13 +1055,35 @@
       emoji:     document.getElementById('sp-emoji').value.trim() || '⭐',
       available: document.getElementById('sp-available').value
     };
-    localStorage.setItem('ll_weekly_special', JSON.stringify(sp));
-    renderSpecialCard();
-    document.getElementById('admin-saved').style.display = 'block';
-    setTimeout(() => {
-      document.getElementById('admin-saved').style.display = 'none';
-      closeAdmin();
-    }, 2000);
+
+    // Send update to Google Sheet via Apps Script
+    const params = new URLSearchParams({
+      action: 'update',
+      name:      sp.name,
+      desc:      sp.desc,
+      price:     sp.price,
+      emoji:     sp.emoji,
+      available: sp.available
+    });
+
+    fetch(SPECIAL_API + '?' + params.toString())
+      .then(() => {
+        renderSpecialCard();
+        document.getElementById('admin-saved').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('admin-saved').style.display = 'none';
+          closeAdmin();
+        }, 2500);
+      })
+      .catch(() => {
+        // Even if fetch fails show success — remind to update sheet manually
+        document.getElementById('admin-saved').innerHTML = '⚠️ Could not reach sheet. Please update your Google Sheet manually.';
+        document.getElementById('admin-saved').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('admin-saved').style.display = 'none';
+          closeAdmin();
+        }, 3500);
+      });
   }
 
   // Close overlay on backdrop click
@@ -1285,7 +1326,7 @@
     <!-- EDIT SCREEN (hidden until logged in) -->
     <div id="admin-form" style="display:none;">
       <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">
-        Update this week's special below. Changes appear on the order form <strong>instantly</strong> — no re-uploading needed!
+        Update this week's special below, then click Save. The form will reflect your changes within seconds for <strong>all customers</strong>!
       </p>
 
       <div class="admin-field">
