@@ -1056,34 +1056,24 @@
       available: document.getElementById('sp-available').value
     };
 
-    // Send update to Google Sheet via Apps Script
-    const params = new URLSearchParams({
-      action: 'update',
-      name:      sp.name,
-      desc:      sp.desc,
-      price:     sp.price,
-      emoji:     sp.emoji,
-      available: sp.available
-    });
+    // Build the special.json content for Lilly to copy
+    const json = JSON.stringify(sp, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'special.json';
+    a.click();
+    URL.revokeObjectURL(url);
 
-    fetch(SPECIAL_API + '?' + params.toString())
-      .then(() => {
-        renderSpecialCard();
-        document.getElementById('admin-saved').style.display = 'block';
-        setTimeout(() => {
-          document.getElementById('admin-saved').style.display = 'none';
-          closeAdmin();
-        }, 2500);
-      })
-      .catch(() => {
-        // Even if fetch fails show success — remind to update sheet manually
-        document.getElementById('admin-saved').innerHTML = '⚠️ Could not reach sheet. Please update your Google Sheet manually.';
-        document.getElementById('admin-saved').style.display = 'block';
-        setTimeout(() => {
-          document.getElementById('admin-saved').style.display = 'none';
-          closeAdmin();
-        }, 3500);
-      });
+    document.getElementById('admin-saved').innerHTML =
+      '✅ <strong>special.json downloaded!</strong><br/>' +
+      '<span style="font-size:.78rem;">Upload it to GitHub alongside index.html — done in 60 seconds!</span>';
+    document.getElementById('admin-saved').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('admin-saved').style.display = 'none';
+      closeAdmin();
+    }, 4000);
   }
 
   // Close overlay on backdrop click
