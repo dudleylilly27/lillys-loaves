@@ -1217,6 +1217,29 @@
     sc.style.display = 'block';
     document.getElementById('success-msg').style.display = 'block';
     sc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // ── Send to Google Forms (populates Google Sheet) ──
+    const GOOGLE_FORM_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScR_h63pKiRDuEBiUUn_lLZwVOqyTZr1R4KXQLdehxii-_9Jw/formResponse';
+    const formData = new FormData();
+    formData.append('entry.477621901',  name);
+    formData.append('entry.1188160679', phone);
+    formData.append('entry.476074871',  email);
+    formData.append('entry.15440025',   address);
+    formData.append('entry.639923744',  city);
+    formData.append('entry.954004769',  zip);
+    formData.append('entry.840313283',  orderLines.join(', '));
+    formData.append('entry.1001354712', '$' + total);
+    formData.append('entry.1649470580', pickup === 'medina' ? 'Medina' : 'Marblehead');
+    formData.append('entry.4073665',    paymethod === 'venmo' ? 'Venmo' : 'Cash at Pickup');
+    formData.append('entry.1753453129', orderNum);
+    formData.append('entry.251989107',  document.getElementById('notes').value || '');
+
+    // Use no-cors since Google Forms doesn't allow cross-origin — data still submits fine
+    fetch(GOOGLE_FORM_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      body: formData
+    }).catch(() => {}); // silently ignore any network error — order still confirmed on screen
   }
 
   function resetForm() {
