@@ -1,652 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lilly's Loaves — Weekly Order</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --cream:    #fdf6ec;
-      --warm:     #f5e6ce;
-      --crust:    #c8813a;
-      --dark:     #3b2a1a;
-      --rust:     #a0522d;
-      --green:    #5a7a52;
-      --muted:    #7a6252;
-      --border:   #ddd0bc;
-      --shadow:   rgba(59,42,26,.12);
-    }
-
-    body {
-      background: var(--cream);
-      background-image:
-        radial-gradient(ellipse at 10% 0%, rgba(200,129,58,.12) 0%, transparent 50%),
-        radial-gradient(ellipse at 90% 100%, rgba(90,122,82,.08) 0%, transparent 50%);
-      min-height: 100vh;
-      font-family: 'Lato', sans-serif;
-      color: var(--dark);
-    }
-
-    /* ── HEADER ── */
-    header {
-      text-align: center;
-      padding: 52px 24px 36px;
-      position: relative;
-    }
-    .badge {
-      display: inline-block;
-      background: var(--crust);
-      color: #fff;
-      font-size: .7rem;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      padding: 4px 14px;
-      border-radius: 20px;
-      margin-bottom: 16px;
-      font-weight: 700;
-    }
-    header h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: clamp(2.6rem, 7vw, 4rem);
-      color: var(--crust);
-      line-height: 1.1;
-      text-shadow: 0 2px 12px rgba(200,129,58,.18);
-    }
-    header h1 em {
-      color: #fff;
-      font-style: italic;
-      background: var(--rust);
-      padding: 0 10px 2px 10px;
-      border-radius: 6px;
-      font-size: 95%;
-    }
-    .tagline {
-      margin-top: 10px;
-      font-size: .95rem;
-      color: var(--muted);
-      font-weight: 300;
-      max-width: 480px;
-      margin-inline: auto;
-      line-height: 1.6;
-    }
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      max-width: 560px;
-      margin: 28px auto 0;
-      color: var(--border);
-    }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-    .divider span { font-size: 1.2rem; }
-
-    .phone-link {
-      display: inline-block;
-      margin-top: 14px;
-      font-size: .84rem;
-      font-weight: 700;
-      color: var(--rust);
-      text-decoration: none;
-      background: var(--warm);
-      border: 1.5px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 16px;
-      letter-spacing: .02em;
-      transition: background .15s, border-color .15s;
-    }
-    .phone-link:hover {
-      background: var(--border);
-      border-color: var(--crust);
-    }
-
-    /* ── WINDOW BANNER ── */
-    .window-banner {
-      max-width: 560px;
-      margin: 20px auto 0;
-      background: var(--warm);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: .88rem;
-      color: var(--rust);
-      font-weight: 700;
-    }
-    .window-banner .icon { font-size: 1.1rem; }
-
-    /* ── CARD ── */
-    .card {
-      max-width: 560px;
-      margin: 28px auto;
-      background: #fff;
-      border-radius: 16px;
-      box-shadow: 0 4px 32px var(--shadow);
-      overflow: hidden;
-    }
-
-    /* ── SECTION HEADER inside card ── */
-    .section-head {
-      background: var(--warm);
-      padding: 14px 28px;
-      border-bottom: 1px solid var(--border);
-      font-family: 'Playfair Display', serif;
-      font-size: 1rem;
-      color: var(--rust);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    /* ── FORM BODY ── */
-    .form-body { padding: 28px; }
-
-    .field-group { margin-bottom: 20px; }
-    .field-group:last-child { margin-bottom: 0; }
-
-    label {
-      display: block;
-      font-size: .82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    label .req { color: var(--crust); margin-left: 2px; }
-
-    input[type="text"],
-    input[type="email"],
-    input[type="tel"],
-    select {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-family: 'Lato', sans-serif;
-      font-size: .95rem;
-      color: var(--dark);
-      background: var(--cream);
-      transition: border-color .2s, box-shadow .2s;
-      outline: none;
-      -webkit-appearance: none;
-    }
-    input:focus, select:focus {
-      border-color: var(--crust);
-      box-shadow: 0 0 0 3px rgba(200,129,58,.15);
-      background: #fff;
-    }
-
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-    }
-
-    /* ── PRODUCT ROWS ── */
-    .product-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 14px 0;
-      border-bottom: 1px solid var(--border);
-    }
-    .product-row:last-child { border-bottom: none; }
-
-    .product-emoji { font-size: 1.6rem; flex-shrink: 0; width: 38px; text-align: center; }
-
-    .product-info { flex: 1; min-width: 0; }
-    .product-name {
-      font-family: 'Playfair Display', serif;
-      font-size: 1rem;
-      color: var(--dark);
-      font-weight: 700;
-    }
-    .product-desc {
-      font-size: .78rem;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-    .product-price {
-      font-weight: 700;
-      color: var(--crust);
-      font-size: .9rem;
-      white-space: nowrap;
-    }
-
-    /* qty selector */
-    .qty-wrap {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-    .qty-btn {
-      background: var(--warm);
-      border: none;
-      width: 32px;
-      height: 32px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      color: var(--rust);
-      transition: background .15s;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700;
-    }
-    .qty-btn:hover { background: var(--border); }
-    .qty-input {
-      width: 36px;
-      height: 32px;
-      border: none;
-      border-left: 1.5px solid var(--border);
-      border-right: 1.5px solid var(--border);
-      text-align: center;
-      font-family: 'Lato', sans-serif;
-      font-size: .95rem;
-      font-weight: 700;
-      color: var(--dark);
-      background: #fff;
-      outline: none;
-      padding: 0;
-      -moz-appearance: textfield;
-    }
-    .qty-input::-webkit-inner-spin-button,
-    .qty-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-
-    /* ── SPECIALTY BADGE ── */
-    .specialty-tag {
-      background: var(--crust);
-      color: #fff;
-      font-size: .65rem;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      padding: 2px 8px;
-      border-radius: 20px;
-      font-weight: 700;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
-
-    /* ── ORDER SUMMARY ── */
-    #summary-section { display: none; }
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: .9rem;
-      padding: 4px 0;
-      color: var(--muted);
-    }
-    .summary-row strong { color: var(--dark); }
-    .summary-total {
-      display: flex;
-      justify-content: space-between;
-      font-size: 1.05rem;
-      font-weight: 700;
-      padding-top: 10px;
-      margin-top: 8px;
-      border-top: 2px solid var(--border);
-      color: var(--dark);
-    }
-    .total-amount { color: var(--crust); font-family: 'Playfair Display', serif; font-size: 1.15rem; }
-
-    /* ── VENMO ── */
-    .venmo-box {
-      background: #e5f0ff;
-      border: 1.5px solid #b8d4f5;
-      border-radius: 10px;
-      padding: 16px 20px;
-      margin-top: 20px;
-    }
-    .venmo-box .venmo-head {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 700;
-      font-size: .92rem;
-      color: #1a5da8;
-      margin-bottom: 6px;
-    }
-    .venmo-logo {
-      background: #3d95ce;
-      color: #fff;
-      font-weight: 900;
-      font-size: .75rem;
-      padding: 2px 7px;
-      border-radius: 5px;
-      letter-spacing: .02em;
-    }
-    .venmo-handle {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #1a5da8;
-      font-family: 'Playfair Display', serif;
-    }
-    .venmo-note {
-      font-size: .8rem;
-      color: #4a6fa5;
-      margin-top: 4px;
-      line-height: 1.5;
-    }
-    .venmo-timing {
-      font-size: .78rem;
-      color: #4a6fa5;
-      margin-top: 6px;
-      background: rgba(255,255,255,.6);
-      border-radius: 6px;
-      padding: 6px 10px;
-    }
-
-    /* ── NOTES ── */
-    textarea {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-family: 'Lato', sans-serif;
-      font-size: .92rem;
-      color: var(--dark);
-      background: var(--cream);
-      resize: vertical;
-      min-height: 80px;
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    textarea:focus {
-      border-color: var(--crust);
-      box-shadow: 0 0 0 3px rgba(200,129,58,.15);
-      background: #fff;
-    }
-
-    /* ── SUBMIT ── */
-    .submit-btn {
-      width: 100%;
-      padding: 16px;
-      background: var(--crust);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-family: 'Playfair Display', serif;
-      font-size: 1.1rem;
-      font-style: italic;
-      cursor: pointer;
-      transition: background .2s, transform .1s;
-      margin-top: 24px;
-      letter-spacing: .02em;
-    }
-    .submit-btn:hover { background: var(--rust); }
-    .submit-btn:active { transform: scale(.98); }
-
-    /* ── SUCCESS STATE ── */
-    #success-msg {
-      display: none;
-      text-align: center;
-      padding: 48px 28px;
-    }
-    #success-msg .big-emoji { font-size: 3rem; margin-bottom: 16px; }
-    #success-msg h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem;
-      color: var(--dark);
-      margin-bottom: 8px;
-    }
-    #success-msg p { color: var(--muted); font-size: .92rem; line-height: 1.6; }
-    #success-msg .again-btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 10px 24px;
-      background: var(--warm);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      color: var(--rust);
-      font-weight: 700;
-      font-size: .88rem;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    /* ── ERROR ── */
-    .error-msg {
-      color: #c0392b;
-      font-size: .78rem;
-      margin-top: 4px;
-      display: none;
-    }
-    .field-error input, .field-error select, .field-error textarea {
-      border-color: #c0392b;
-    }
-    .field-error .error-msg { display: block; }
-
-    footer {
-      text-align: center;
-      padding: 24px;
-      font-size: .78rem;
-      color: var(--muted);
-    }
-
-    @media (max-width: 480px) {
-      .two-col { grid-template-columns: 1fr; }
-      .form-body { padding: 20px; }
-    }
-
-    /* ── PICKUP CARDS ── */
-    .pickup-options {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
-    .pickup-card { cursor: pointer; display: block; }
-    .pickup-card input[type="radio"] { display: none; }
-    .pickup-card-inner {
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      padding: 14px;
-      background: var(--cream);
-      transition: border-color .2s, background .2s, box-shadow .2s;
-    }
-    .pickup-card input:checked + .pickup-card-inner {
-      border-color: var(--crust);
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(200,129,58,.12);
-    }
-    .pickup-card:hover .pickup-card-inner { border-color: var(--crust); }
-    .pickup-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-    .pickup-icon { font-size: 1.4rem; flex-shrink: 0; }
-    .pickup-city { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--dark); }
-    .pickup-time { font-size: .75rem; color: var(--crust); font-weight: 700; margin-top: 1px; }
-    .pickup-addr { font-size: .77rem; color: var(--muted); line-height: 1.5; }
-    .pickup-note {
-      display: flex; gap: 8px; align-items: flex-start;
-      background: var(--warm); border: 1px solid var(--border);
-      border-radius: 8px; padding: 10px 12px;
-      font-size: .78rem; color: var(--muted); line-height: 1.5;
-      margin-top: 10px;
-    }
-
-    /* ── PAY TOGGLE ── */
-    .pay-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .pay-opt { cursor: pointer; display: block; }
-    .pay-opt input[type="radio"] { display: none; }
-    .pay-opt-inner {
-      display: flex; flex-direction: column; align-items: center;
-      gap: 8px; padding: 14px 10px;
-      border: 2px solid var(--border); border-radius: 10px;
-      background: var(--cream);
-      transition: border-color .2s, background .2s, box-shadow .2s;
-      text-align: center;
-    }
-    .pay-opt input:checked + .pay-opt-inner {
-      border-color: var(--crust); background: #fff;
-      box-shadow: 0 0 0 3px rgba(200,129,58,.12);
-    }
-    .pay-opt:hover .pay-opt-inner { border-color: var(--crust); }
-    .pay-opt-icon { font-size: 1.3rem; }
-    .pay-opt-label { font-size: .82rem; font-weight: 700; color: var(--dark); }
-    .venmo-pill {
-      background: #3d95ce; color: #fff;
-      font-weight: 900; font-size: .78rem;
-      padding: 3px 10px; border-radius: 6px;
-      letter-spacing: .02em; display: inline-block;
-    }
-
-    /* ── CASH BOX ── */
-    .cash-box {
-      background: #f0faf0; border: 1.5px solid #b2ddb2;
-      border-radius: 10px; padding: 16px 20px;
-    }
-    .cash-head { font-weight: 700; font-size: .92rem; color: #2e6b2e; margin-bottom: 6px; }
-    .cash-note { font-size: .82rem; color: #3a7a3a; line-height: 1.6; }
-
-    @media (max-width: 400px) {
-      .pickup-options, .pay-toggle { grid-template-columns: 1fr; }
-    }
-
-    /* ══ ADMIN PANEL ══ */
-    #admin-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(30,18,8,.82);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    #admin-overlay.open { display: flex; }
-
-    #admin-panel {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 8px 48px rgba(0,0,0,.32);
-      width: 100%;
-      max-width: 480px;
-      overflow: hidden;
-      animation: slideUp .25s ease;
-    }
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-    #admin-panel .admin-head {
-      background: var(--dark);
-      color: #fff;
-      padding: 18px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    #admin-panel .admin-head h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.15rem;
-      font-weight: 700;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .admin-close {
-      background: rgba(255,255,255,.15);
-      border: none; color: #fff;
-      width: 30px; height: 30px;
-      border-radius: 50%; font-size: 1rem;
-      cursor: pointer; display: flex;
-      align-items: center; justify-content: center;
-      transition: background .15s;
-    }
-    .admin-close:hover { background: rgba(255,255,255,.3); }
-
-    #admin-login, #admin-form { padding: 24px; }
-
-    .admin-field { margin-bottom: 16px; }
-    .admin-field label {
-      font-size: .78rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .08em;
-      color: var(--muted); margin-bottom: 5px; display: block;
-    }
-    .admin-field input, .admin-field textarea, .admin-field select {
-      width: 100%; padding: 10px 12px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      font-family: 'Lato', sans-serif; font-size: .93rem;
-      color: var(--dark); background: var(--cream);
-      outline: none;
-      transition: border-color .2s;
-    }
-    .admin-field input:focus, .admin-field textarea:focus, .admin-field select:focus {
-      border-color: var(--crust); background: #fff;
-    }
-    .admin-field textarea { resize: vertical; min-height: 64px; }
-
-    .admin-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .admin-btn {
-      width: 100%; padding: 12px;
-      background: var(--crust); color: #fff;
-      border: none; border-radius: 9px;
-      font-family: 'Playfair Display', serif;
-      font-size: 1rem; font-style: italic;
-      cursor: pointer; transition: background .2s;
-      margin-top: 4px;
-    }
-    .admin-btn:hover { background: var(--rust); }
-
-    .admin-err {
-      color: #c0392b; font-size: .8rem;
-      margin-top: 8px; display: none; text-align: center;
-    }
-    .admin-success-msg {
-      background: #f0faf0; border: 1.5px solid #b2ddb2;
-      border-radius: 8px; padding: 10px 14px;
-      color: #2e6b2e; font-size: .85rem;
-      margin-top: 12px; display: none; text-align: center;
-    }
-    .admin-divider {
-      border: none; border-top: 1px solid var(--border);
-      margin: 18px 0;
-    }
-    .admin-preview-label {
-      font-size: .75rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: .08em;
-      color: var(--muted); margin-bottom: 8px;
-    }
-    .admin-preview-box {
-      background: var(--warm); border: 1.5px solid var(--border);
-      border-radius: 10px; padding: 12px 14px;
-      font-size: .88rem; color: var(--dark); line-height: 1.5;
-    }
-    .admin-preview-box strong { color: var(--crust); }
-
-    /* small gear icon link in footer */
-    .admin-trigger {
-      display: inline-block;
-      margin-top: 6px;
-      font-size: .72rem;
-      color: var(--border);
-      text-decoration: none;
-      cursor: pointer;
-      transition: color .2s;
-      user-select: none;
-    }
-    .admin-trigger:hover { color: var(--muted); }
-
-    .special-unavailable {
-      text-align: center;
-      padding: 18px 0 6px;
-      color: var(--muted);
-      font-size: .88rem;
-      font-style: italic;
-    }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lilly's Loaves — Weekly Order</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#fdf6ec;--warm:#f5e6ce;--crust:#c8813a;--dark:#3b2a1a;
+  --rust:#a0522d;--muted:#7a6252;--border:#ddd0bc;--shadow:rgba(59,42,26,.12);
+}
+body{background:var(--cream);background-image:radial-gradient(ellipse at 10% 0%,rgba(200,129,58,.12) 0%,transparent 50%),radial-gradient(ellipse at 90% 100%,rgba(90,122,82,.08) 0%,transparent 50%);min-height:100vh;font-family:'Lato',sans-serif;color:var(--dark)}
+header{text-align:center;padding:52px 24px 36px}
+.badge{display:inline-block;background:var(--crust);color:#fff;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;padding:4px 14px;border-radius:20px;margin-bottom:16px;font-weight:700}
+header h1{font-family:'Playfair Display',serif;font-size:clamp(2.6rem,7vw,4rem);color:var(--crust);line-height:1.1;text-shadow:0 2px 12px rgba(200,129,58,.18)}
+header h1 em{color:#fff;font-style:italic;background:var(--rust);padding:0 10px 2px 10px;border-radius:6px;font-size:95%}
+.tagline{margin-top:10px;font-size:.95rem;color:var(--muted);font-weight:300;max-width:480px;margin-inline:auto;line-height:1.6}
+.phone-link{display:inline-block;margin-top:14px;font-size:.84rem;font-weight:700;color:var(--rust);text-decoration:none;background:var(--warm);border:1.5px solid var(--border);border-radius:20px;padding:5px 16px;transition:background .15s}
+.phone-link:hover{background:var(--border)}
+.divider{display:flex;align-items:center;gap:12px;max-width:560px;margin:28px auto 0;color:var(--border)}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.divider span{font-size:1.2rem}
+.window-banner{max-width:560px;margin:20px auto 0;background:var(--warm);border:1px solid var(--border);border-radius:10px;padding:12px 28px;display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--rust);font-weight:700}
+.card{max-width:560px;margin:28px auto;background:#fff;border-radius:16px;box-shadow:0 4px 32px var(--shadow);overflow:hidden}
+.section-head{background:var(--warm);padding:14px 28px;border-bottom:1px solid var(--border);font-family:'Playfair Display',serif;font-size:1rem;color:var(--rust);display:flex;align-items:center;gap:8px}
+.form-body{padding:28px}
+.field-group{margin-bottom:20px}
+.field-group:last-child{margin-bottom:0}
+label{display:block;font-size:.82rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+label .req{color:var(--crust);margin-left:2px}
+input[type="text"],input[type="email"],input[type="tel"],select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'Lato',sans-serif;font-size:.95rem;color:var(--dark);background:var(--cream);transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none}
+input:focus,select:focus{border-color:var(--crust);box-shadow:0 0 0 3px rgba(200,129,58,.15);background:#fff}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.product-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)}
+.product-row:last-child{border-bottom:none}
+.product-emoji{font-size:1.6rem;flex-shrink:0;width:38px;text-align:center}
+.product-info{flex:1;min-width:0}
+.product-name{font-family:'Playfair Display',serif;font-size:1rem;color:var(--dark);font-weight:700}
+.product-desc{font-size:.78rem;color:var(--muted);margin-top:2px}
+.product-price{font-weight:700;color:var(--crust);font-size:.9rem;white-space:nowrap}
+.qty-wrap{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:8px;overflow:hidden;flex-shrink:0}
+.qty-btn{background:var(--warm);border:none;width:32px;height:32px;font-size:1.1rem;cursor:pointer;color:var(--rust);transition:background .15s;display:flex;align-items:center;justify-content:center;font-weight:700}
+.qty-btn:hover{background:var(--border)}
+.qty-input{width:36px;height:32px;border:none;border-left:1.5px solid var(--border);border-right:1.5px solid var(--border);text-align:center;font-family:'Lato',sans-serif;font-size:.95rem;font-weight:700;color:var(--dark);background:#fff;outline:none;padding:0;-moz-appearance:textfield}
+.qty-input::-webkit-inner-spin-button,.qty-input::-webkit-outer-spin-button{-webkit-appearance:none}
+.specialty-tag{background:var(--crust);color:#fff;font-size:.65rem;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:20px;font-weight:700;margin-left:6px;vertical-align:middle}
+#summary-section{display:none}
+.summary-row{display:flex;justify-content:space-between;font-size:.9rem;padding:4px 0;color:var(--muted)}
+.summary-row strong{color:var(--dark)}
+.summary-total{display:flex;justify-content:space-between;font-size:1.05rem;font-weight:700;padding-top:10px;margin-top:8px;border-top:2px solid var(--border);color:var(--dark)}
+.total-amount{color:var(--crust);font-family:'Playfair Display',serif;font-size:1.15rem}
+.venmo-box{background:#e5f0ff;border:1.5px solid #b8d4f5;border-radius:10px;padding:16px 20px;margin-top:16px}
+.venmo-box .venmo-head{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.92rem;color:#1a5da8;margin-bottom:6px}
+.venmo-logo{background:#3d95ce;color:#fff;font-weight:900;font-size:.75rem;padding:2px 7px;border-radius:5px;letter-spacing:.02em}
+.venmo-handle{font-size:1.1rem;font-weight:700;color:#1a5da8;font-family:'Playfair Display',serif}
+.venmo-note{font-size:.8rem;color:#4a6fa5;margin-top:4px;line-height:1.5}
+.venmo-timing{font-size:.78rem;color:#4a6fa5;margin-top:6px;background:rgba(255,255,255,.6);border-radius:6px;padding:6px 10px}
+.cash-box{background:#f0faf0;border:1.5px solid #b2ddb2;border-radius:10px;padding:16px 20px;margin-top:16px}
+.cash-head{font-weight:700;font-size:.92rem;color:#2e6b2e;margin-bottom:6px}
+.cash-note{font-size:.82rem;color:#3a7a3a;line-height:1.6}
+textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'Lato',sans-serif;font-size:.92rem;color:var(--dark);background:var(--cream);resize:vertical;min-height:80px;outline:none;transition:border-color .2s,box-shadow .2s}
+textarea:focus{border-color:var(--crust);box-shadow:0 0 0 3px rgba(200,129,58,.15);background:#fff}
+.submit-btn{width:100%;padding:16px;background:var(--crust);color:#fff;border:none;border-radius:10px;font-family:'Playfair Display',serif;font-size:1.1rem;font-style:italic;cursor:pointer;transition:background .2s,transform .1s;margin-top:24px;letter-spacing:.02em}
+.submit-btn:hover{background:var(--rust)}
+.submit-btn:active{transform:scale(.98)}
+#success-msg{display:none;text-align:center;padding:48px 28px}
+#success-msg .big-emoji{font-size:3rem;margin-bottom:16px}
+#success-msg h2{font-family:'Playfair Display',serif;font-size:1.6rem;color:var(--dark);margin-bottom:8px}
+#success-msg p{color:var(--muted);font-size:.92rem;line-height:1.6}
+#success-msg .again-btn{display:inline-block;margin-top:20px;padding:10px 24px;background:var(--warm);border:1.5px solid var(--border);border-radius:8px;color:var(--rust);font-weight:700;font-size:.88rem;cursor:pointer;text-transform:uppercase;letter-spacing:.08em}
+.error-msg{color:#c0392b;font-size:.78rem;margin-top:4px;display:none}
+.field-error input,.field-error select,.field-error textarea{border-color:#c0392b}
+.field-error .error-msg{display:block}
+footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
+.admin-trigger{display:inline-block;margin-top:6px;font-size:.72rem;color:var(--border);cursor:pointer;transition:color .2s;user-select:none}
+.admin-trigger:hover{color:var(--muted)}
+.pickup-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+.pickup-card{cursor:pointer;display:block}
+.pickup-card input[type="radio"]{display:none}
+.pickup-card-inner{border:2px solid var(--border);border-radius:10px;padding:14px;background:var(--cream);transition:border-color .2s,background .2s,box-shadow .2s}
+.pickup-card input:checked + .pickup-card-inner{border-color:var(--crust);background:#fff;box-shadow:0 0 0 3px rgba(200,129,58,.12)}
+.pickup-card:hover .pickup-card-inner{border-color:var(--crust)}
+.pickup-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.pickup-icon{font-size:1.4rem;flex-shrink:0}
+.pickup-city{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--dark)}
+.pickup-time{font-size:.75rem;color:var(--crust);font-weight:700;margin-top:1px}
+.pickup-addr{font-size:.77rem;color:var(--muted);line-height:1.5}
+.pickup-note{display:flex;gap:8px;align-items:flex-start;background:var(--warm);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.78rem;color:var(--muted);line-height:1.5;margin-top:10px}
+.pay-toggle{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pay-opt{cursor:pointer;display:block}
+.pay-opt input[type="radio"]{display:none}
+.pay-opt-inner{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;border:2px solid var(--border);border-radius:10px;background:var(--cream);transition:border-color .2s,background .2s,box-shadow .2s;text-align:center}
+.pay-opt input:checked + .pay-opt-inner{border-color:var(--crust);background:#fff;box-shadow:0 0 0 3px rgba(200,129,58,.12)}
+.pay-opt:hover .pay-opt-inner{border-color:var(--crust)}
+.pay-opt-icon{font-size:1.3rem}
+.pay-opt-label{font-size:.82rem;font-weight:700;color:var(--dark)}
+.venmo-pill{background:#3d95ce;color:#fff;font-weight:900;font-size:.78rem;padding:3px 10px;border-radius:6px;letter-spacing:.02em;display:inline-block}
+.special-loading{text-align:center;padding:18px 0;color:var(--muted);font-size:.88rem;font-style:italic}
+.special-unavailable{text-align:center;padding:18px 0 6px;color:var(--muted);font-size:.88rem;font-style:italic}
+/* ADMIN */
+#admin-overlay{display:none;position:fixed;inset:0;background:rgba(30,18,8,.82);backdrop-filter:blur(4px);z-index:1000;align-items:center;justify-content:center;padding:20px}
+#admin-overlay.open{display:flex}
+#admin-panel{background:#fff;border-radius:18px;box-shadow:0 8px 48px rgba(0,0,0,.32);width:100%;max-width:480px;overflow:hidden;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+#admin-panel .admin-head{background:var(--dark);color:#fff;padding:18px 24px;display:flex;align-items:center;justify-content:space-between}
+#admin-panel .admin-head h2{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;display:flex;align-items:center;gap:8px}
+.admin-close{background:rgba(255,255,255,.15);border:none;color:#fff;width:30px;height:30px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s}
+.admin-close:hover{background:rgba(255,255,255,.3)}
+#admin-login,#admin-form{padding:24px}
+.admin-field{margin-bottom:16px}
+.admin-field label{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px;display:block}
+.admin-field input,.admin-field textarea,.admin-field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-family:'Lato',sans-serif;font-size:.93rem;color:var(--dark);background:var(--cream);outline:none;transition:border-color .2s}
+.admin-field input:focus,.admin-field textarea:focus,.admin-field select:focus{border-color:var(--crust);background:#fff}
+.admin-field textarea{resize:vertical;min-height:64px}
+.admin-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.admin-btn{width:100%;padding:12px;background:var(--crust);color:#fff;border:none;border-radius:9px;font-family:'Playfair Display',serif;font-size:1rem;font-style:italic;cursor:pointer;transition:background .2s;margin-top:4px}
+.admin-btn:hover{background:var(--rust)}
+.admin-err{color:#c0392b;font-size:.8rem;margin-top:8px;display:none;text-align:center}
+.admin-saved{background:#f0faf0;border:1.5px solid #b2ddb2;border-radius:8px;padding:10px 14px;color:#2e6b2e;font-size:.85rem;margin-top:12px;display:none;text-align:center}
+.admin-divider{border:none;border-top:1px solid var(--border);margin:18px 0}
+.admin-preview-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
+.admin-preview-box{background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:.88rem;color:var(--dark);line-height:1.5}
+@media(max-width:480px){.two-col,.pickup-options,.pay-toggle,.admin-row{grid-template-columns:1fr}.form-body{padding:20px}}
+</style>
 </head>
 <body>
 
@@ -658,12 +135,12 @@
   <div class="divider"><span>🌾</span></div>
 </header>
 
-<div class="window-banner" style="padding-left:28px; padding-right:28px;">
-  <span class="icon">🗓️</span>
+<div class="window-banner">
+  <span>🗓️</span>
   <span>Orders open <strong>Saturday</strong> · Close <strong>Monday</strong> · Pickup mid-week</span>
 </div>
 
-<!-- ───── CONTACT ───── -->
+<!-- YOUR INFO -->
 <div class="card">
   <div class="section-head">👤 Your Info</div>
   <div class="form-body">
@@ -704,174 +181,135 @@
   </div>
 </div>
 
-<!-- ───── STANDARD LOAVES ───── -->
+<!-- STANDARD LOAVES -->
 <div class="card">
   <div class="section-head">🍞 Standard Loaves <span style="font-size:.8rem;color:var(--muted);font-family:'Lato',sans-serif;font-weight:400;margin-left:6px;">— Order as many as you'd like!</span></div>
   <div class="form-body">
-
     <div class="product-row">
       <div class="product-emoji">🤍</div>
       <div class="product-info">
         <div class="product-name">Plain Sourdough</div>
         <div class="product-desc">Classic slow-fermented loaf — crispy crust, open crumb</div>
       </div>
-      <div class="product-price">$11</div>
+      <div class="product-price">$11 each</div>
       <div class="qty-wrap">
         <button type="button" class="qty-btn" onclick="changeQty('plain',-1)">−</button>
-        <input class="qty-input" type="number" id="plain" value="0" min="0" max="10" oninput="updateSummary()"/>
+        <input class="qty-input" type="number" id="plain" value="0" min="0" max="10" readonly/>
         <button type="button" class="qty-btn" onclick="changeQty('plain',1)">+</button>
       </div>
     </div>
-
     <div class="product-row">
       <div class="product-emoji">🌶️</div>
       <div class="product-info">
         <div class="product-name">Jalapeño Cheddar</div>
         <div class="product-desc">Loaded with sharp cheddar & roasted jalapeños</div>
       </div>
-      <div class="product-price">$15</div>
+      <div class="product-price">$15 each</div>
       <div class="qty-wrap">
         <button type="button" class="qty-btn" onclick="changeQty('jalapeno',-1)">−</button>
-        <input class="qty-input" type="number" id="jalapeno" value="0" min="0" max="10" oninput="updateSummary()"/>
+        <input class="qty-input" type="number" id="jalapeno" value="0" min="0" max="10" readonly/>
         <button type="button" class="qty-btn" onclick="changeQty('jalapeno',1)">+</button>
       </div>
     </div>
-
     <div class="product-row">
       <div class="product-emoji">🍂</div>
       <div class="product-info">
         <div class="product-name">Cinnamon Sugar</div>
         <div class="product-desc">Swirled with cinnamon & sugar — perfect toasted</div>
       </div>
-      <div class="product-price">$15</div>
+      <div class="product-price">$15 each</div>
       <div class="qty-wrap">
         <button type="button" class="qty-btn" onclick="changeQty('cinnamon',-1)">−</button>
-        <input class="qty-input" type="number" id="cinnamon" value="0" min="0" max="10" oninput="updateSummary()"/>
+        <input class="qty-input" type="number" id="cinnamon" value="0" min="0" max="10" readonly/>
         <button type="button" class="qty-btn" onclick="changeQty('cinnamon',1)">+</button>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- ───── WEEKLY SPECIAL ───── -->
+<!-- WEEKLY SPECIAL -->
 <div class="card" id="special-card">
   <div class="section-head">⭐ This Week's Special <span class="specialty-tag">Limited!</span></div>
   <div class="form-body" id="special-body">
-    <!-- rendered by JS from localStorage -->
+    <div class="special-loading">Loading this week's special...</div>
   </div>
 </div>
 
-<!-- ───── COOKIES ───── -->
+<!-- COOKIES -->
 <div class="card">
   <div class="section-head">🍪 Cookies</div>
   <div class="form-body">
-
     <div class="product-row" style="border-bottom:none;">
       <div class="product-emoji">🍫</div>
       <div class="product-info">
         <div class="product-name">Sourdough Chocolate Chip Cookies</div>
         <div class="product-desc">½ dozen per order — chewy, tangy, irresistible</div>
       </div>
-      <div class="product-price">$10</div>
+      <div class="product-price">$10 each</div>
       <div class="qty-wrap">
         <button type="button" class="qty-btn" onclick="changeQty('cookies',-1)">−</button>
-        <input class="qty-input" type="number" id="cookies" value="0" min="0" max="10" oninput="updateSummary()"/>
+        <input class="qty-input" type="number" id="cookies" value="0" min="0" max="10" readonly/>
         <button type="button" class="qty-btn" onclick="changeQty('cookies',1)">+</button>
       </div>
     </div>
-
   </div>
 </div>
 
-<!-- ───── ORDER SUMMARY ───── -->
+<!-- ORDER SUMMARY -->
 <div class="card" id="summary-section">
   <div class="section-head">🧾 Order Summary</div>
-  <div class="form-body" id="summary-body">
-    <!-- filled by JS -->
-  </div>
+  <div class="form-body" id="summary-body"></div>
 </div>
 
-<!-- ───── PICKUP LOCATION ───── -->
+<!-- PICKUP -->
 <div class="card">
   <div class="section-head">📍 Pickup Location</div>
   <div class="form-body">
-    <p style="font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:16px;">Choose your preferred pickup location. Exact times are posted weekly in the <strong><a href="#" style="color:var(--crust);text-decoration:none;">Lilly's Loaves Facebook group</a></strong>.</p>
-
+    <p style="font-size:.85rem;color:var(--muted);line-height:1.6;margin-bottom:16px;">Choose your preferred pickup location. Exact times are posted weekly in the <strong>Lilly's Loaves Facebook group</strong>.</p>
     <div class="field-group" id="fg-pickup">
       <label>Pickup Location <span class="req">*</span></label>
       <div class="pickup-options">
-
         <label class="pickup-card" for="pickup-medina">
           <input type="radio" name="pickup" id="pickup-medina" value="medina" onchange="onPickupChange()"/>
           <div class="pickup-card-inner">
-            <div class="pickup-top">
-              <span class="pickup-icon">🏘️</span>
-              <div>
-                <div class="pickup-city">Medina</div>
-                <div class="pickup-time">~1:00 PM ET</div>
-              </div>
-            </div>
+            <div class="pickup-top"><span class="pickup-icon">🏘️</span><div><div class="pickup-city">Medina</div><div class="pickup-time">~1:00 PM ET</div></div></div>
             <div class="pickup-addr">4390 Lakeview Glen Dr<br/>Medina, OH 44256</div>
           </div>
         </label>
-
         <label class="pickup-card" for="pickup-marblehead">
           <input type="radio" name="pickup" id="pickup-marblehead" value="marblehead" onchange="onPickupChange()"/>
           <div class="pickup-card-inner">
-            <div class="pickup-top">
-              <span class="pickup-icon">⚓</span>
-              <div>
-                <div class="pickup-city">Marblehead</div>
-                <div class="pickup-time">~6:00 PM ET</div>
-              </div>
-            </div>
+            <div class="pickup-top"><span class="pickup-icon">⚓</span><div><div class="pickup-city">Marblehead</div><div class="pickup-time">~6:00 PM ET</div></div></div>
             <div class="pickup-addr">2000 Dorchester Dr<br/>Marblehead, OH 43440</div>
           </div>
         </label>
-
       </div>
       <div class="error-msg" id="pickup-error-msg">Please select a pickup location.</div>
     </div>
-
-    <div class="pickup-note">
-      <span>📣</span>
-      <span>Exact pickup times are confirmed each week in the Facebook group. Other arrangements? Add a note below.</span>
-    </div>
+    <div class="pickup-note"><span>📣</span><span>Exact pickup times are confirmed each week in the Facebook group. Other arrangements? Add a note below.</span></div>
   </div>
 </div>
 
-<!-- ───── PAYMENT ───── -->
+<!-- PAYMENT -->
 <div class="card">
   <div class="section-head">💸 Payment</div>
   <div class="form-body">
     <p style="font-size:.88rem;color:var(--muted);line-height:1.6;margin-bottom:14px;">Choose how you'd like to pay:</p>
-
     <div class="pay-toggle" id="fg-paymethod">
       <label class="pay-opt" for="pay-venmo">
         <input type="radio" name="paymethod" id="pay-venmo" value="venmo" onchange="onPayMethodChange()"/>
-        <span class="pay-opt-inner">
-          <span class="pay-opt-icon venmo-pill">Venmo</span>
-          <span class="pay-opt-label">Pay via Venmo</span>
-        </span>
+        <span class="pay-opt-inner"><span class="pay-opt-icon venmo-pill">Venmo</span><span class="pay-opt-label">Pay via Venmo</span></span>
       </label>
       <label class="pay-opt" for="pay-cash">
         <input type="radio" name="paymethod" id="pay-cash" value="cash" onchange="onPayMethodChange()"/>
-        <span class="pay-opt-inner">
-          <span class="pay-opt-icon">💵</span>
-          <span class="pay-opt-label">Cash at Pickup</span>
-        </span>
+        <span class="pay-opt-inner"><span class="pay-opt-icon">💵</span><span class="pay-opt-label">Cash at Pickup</span></span>
       </label>
     </div>
-    <div class="error-msg" id="paymethod-error-msg" style="margin-top:4px;display:none;">Please select a payment method.</div>
-
-    <div class="venmo-box" id="venmo-details" style="display:none;margin-top:16px;">
-      <div class="venmo-head">
-        <span class="venmo-logo">Venmo</span>
-        Pay via Venmo
-      </div>
+    <div class="error-msg" id="paymethod-error-msg" style="display:none;">Please select a payment method.</div>
+    <div class="venmo-box" id="venmo-details" style="display:none;">
+      <div class="venmo-head"><span class="venmo-logo">Venmo</span> Pay via Venmo</div>
       <div class="venmo-handle">@LillysLoaves</div>
-      <div class="venmo-note">Send your total once you submit — include your <strong>order number</strong> in the Venmo note so Lilly can match your payment.</div>
+      <div class="venmo-note">Send your total once you submit — include your <strong>order number</strong> in the Venmo note.</div>
       <div class="venmo-timing">⏰ Payment confirms your spot. Unpaid orders may be released after 24 hours.</div>
       <div class="field-group" style="margin-top:14px;margin-bottom:0;" id="fg-paid">
         <label>Payment timing <span class="req">*</span></label>
@@ -884,357 +322,453 @@
         <div class="error-msg">Please confirm your payment timing.</div>
       </div>
     </div>
-
-    <div class="cash-box" id="cash-details" style="display:none;margin-top:16px;">
+    <div class="cash-box" id="cash-details" style="display:none;">
       <div class="cash-head">💵 Cash at Pickup</div>
-      <div class="cash-note">Please have exact change ready at your chosen pickup location. Your order will be held for you — just bring cash and your order number!</div>
+      <div class="cash-note">Please have exact change ready at pickup. Your order will be held — just bring cash and your order number!</div>
     </div>
-
   </div>
 </div>
 
-<!-- ───── NOTES ───── -->
+<!-- NOTES -->
 <div class="card">
-  <div class="section-head">📝 Notes</div>
   <div class="form-body">
     <div class="field-group">
-      <label>Anything else? (optional)</label>
+      <label>Notes (optional)</label>
       <textarea id="notes" placeholder="Allergies, special requests, pickup questions…"></textarea>
     </div>
-    <div id="order-error" style="color:#c0392b;font-size:.85rem;display:none;margin-top:8px;">⚠️ Please add at least one item to your order before submitting.</div>
+    <div id="order-error" style="color:#c0392b;font-size:.85rem;display:none;margin-bottom:8px;">⚠️ Please add at least one item to your order before submitting.</div>
     <button class="submit-btn" onclick="submitOrder()">Place My Order 🍞</button>
   </div>
 </div>
 
-<!-- ───── SUCCESS ───── -->
+<!-- SUCCESS -->
 <div class="card" id="success-card" style="display:none;">
   <div id="success-msg">
     <div class="big-emoji">🎉</div>
     <h2>Order Received!</h2>
-    <p id="success-body">Thanks so much — Lilly can't wait to bake for you! Don't forget to send your Venmo payment to <strong>@LillysLoaves</strong> to lock in your order.</p>
+    <p id="success-body"></p>
     <div class="again-btn" onclick="resetForm()">Place Another Order</div>
   </div>
 </div>
 
-<footer>Lilly's Loaves · Handcrafted Sourdough · Orders open Sat–Mon · ✨🍞<br/><a href="tel:+13304211744" style="color:var(--muted);text-decoration:none;">📞 (330) 421-1744</a><br/><span class="admin-trigger" onclick="openAdmin()">⚙ Lilly's Kitchen</span></footer>
+<footer>
+  Lilly's Loaves · Handcrafted Sourdough · Orders open Sat–Mon · ✨🍞<br/>
+  <a href="tel:+13304211744" style="color:var(--muted);text-decoration:none;">📞 (330) 421-1744</a><br/>
+  <span class="admin-trigger" onclick="openAdmin()">⚙ Lilly's Kitchen</span>
+</footer>
+
+<!-- ADMIN PANEL -->
+<div id="admin-overlay">
+  <div id="admin-panel">
+    <div class="admin-head">
+      <h2>🧑‍🍳 Lilly's Kitchen</h2>
+      <button class="admin-close" onclick="closeAdmin()">✕</button>
+    </div>
+    <div id="admin-login">
+      <div class="admin-field">
+        <label>Password</label>
+        <input type="password" id="admin-pw" placeholder="Enter your password…" onkeydown="if(event.key==='Enter')checkAdminPw()"/>
+      </div>
+      <button class="admin-btn" onclick="checkAdminPw()">Unlock ✨</button>
+      <div class="admin-err" id="admin-pw-err">Incorrect password. Try again.</div>
+    </div>
+    <div id="admin-form" style="display:none;">
+      <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px;line-height:1.5;">Update this week's special. Edit the fields below, click Save — the form updates for all customers immediately!</p>
+      <div class="admin-field"><label>Special Name</label><input type="text" id="sp-name" placeholder="e.g. Garlic Herb Loaf"/></div>
+      <div class="admin-field"><label>Description</label><textarea id="sp-desc" placeholder="e.g. Roasted garlic swirled through every slice…"></textarea></div>
+      <div class="admin-row">
+        <div class="admin-field"><label>Price ($)</label><input type="number" id="sp-price" placeholder="15" min="1" max="99"/></div>
+        <div class="admin-field"><label>Emoji</label><input type="text" id="sp-emoji" placeholder="🍕" maxlength="4"/></div>
+      </div>
+      <div class="admin-field">
+        <label>Availability</label>
+        <select id="sp-available">
+          <option value="yes">✅ Available this week</option>
+          <option value="no">❌ No special this week</option>
+        </select>
+      </div>
+      <hr class="admin-divider"/>
+      <div class="admin-preview-label">Preview</div>
+      <div class="admin-preview-box" id="sp-preview">—</div>
+      <button class="admin-btn" style="margin-top:16px;" onclick="saveSpecial()">Save & Publish 🍞</button>
+      <div class="admin-saved" id="admin-saved"></div>
+    </div>
+  </div>
+</div>
 
 <script>
-  // ── ADMIN PASSWORD (change this to something only Lilly knows) ──
-  const ADMIN_PASSWORD = 'lillybakes2024';
+// ─────────────────────────────────────────────
+// CONFIGURATION
+// ─────────────────────────────────────────────
+var ADMIN_PASSWORD = 'lillybakes2024';
+var SHEET_ID       = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
+var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=Sheet1';
 
-  // ================================================================
-  // LILLY: UPDATE THIS SECTION EVERY SATURDAY
-  // Change the values below and re-upload index.html to GitHub
-  // ================================================================
-  var THIS_WEEK_SPECIAL = {
-    name:      'Pizza Loaf',
-    desc:      'Sourdough stuffed with pizza flavors — a weekly crowd favorite',
-    price:     15,
-    emoji:     '🍕',
-    available: 'yes'
-  };
-  // ================================================================
+var GOOGLE_FORM_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScR_h63pKiRDuEBiUUn_lLZwVOqyTZr1R4KXQLdehxii-_9Jw/formResponse';
 
-  function renderSpecialCard() {
-    var sp   = THIS_WEEK_SPECIAL;
-    var body = document.getElementById('special-body');
-    if (!body) return;
+var DEFAULT_SPECIAL = {
+  name: 'Pizza Loaf',
+  desc: 'Sourdough stuffed with pizza flavors — a weekly crowd favorite',
+  price: 15,
+  emoji: '🍕',
+  available: 'yes'
+};
 
-    if (sp.available === 'no') {
-      body.innerHTML = '<div class="special-unavailable">No special this week — check back Saturday! 🍞</div>';
-      delete PRODUCTS.pizza;
-      return;
+// ─────────────────────────────────────────────
+// PRODUCTS — pizza added dynamically
+// ─────────────────────────────────────────────
+var PRODUCTS = {
+  plain:    { name: 'Plain Sourdough',            price: 11 },
+  jalapeno: { name: 'Jalapeno Cheddar',           price: 15 },
+  cinnamon: { name: 'Cinnamon Sugar',             price: 15 },
+  cookies:  { name: 'Choc Chip Cookies (1/2 doz)',price: 10 }
+};
+
+// ─────────────────────────────────────────────
+// LOAD WEEKLY SPECIAL FROM GOOGLE SHEET
+// Uses the public gviz/tq endpoint — no API key needed
+// ─────────────────────────────────────────────
+function loadSpecialFromSheet() {
+  var url = SHEET_URL + '&nocache=' + Date.now();
+  var script = document.createElement('script');
+  script.src = url.replace('tqx=out:json', 'tqx=out:json&tqrt=json&callback=handleSheetData');
+  script.onerror = function() { renderSpecial(DEFAULT_SPECIAL); };
+  document.head.appendChild(script);
+  // Timeout fallback
+  setTimeout(function() {
+    if (!window._specialLoaded) { renderSpecial(DEFAULT_SPECIAL); }
+  }, 5000);
+}
+
+function handleSheetData(data) {
+  window._specialLoaded = true;
+  try {
+    var rows = data.table.rows;
+    var sp = {};
+    for (var i = 0; i < rows.length; i++) {
+      var key = rows[i].c[0] ? rows[i].c[0].v : null;
+      var val = rows[i].c[1] ? rows[i].c[1].v : null;
+      if (key) sp[key] = val;
     }
+    if (!sp.name) { renderSpecial(DEFAULT_SPECIAL); return; }
+    renderSpecial(sp);
+  } catch(e) {
+    renderSpecial(DEFAULT_SPECIAL);
+  }
+}
 
-    PRODUCTS.pizza = { name: sp.name + ' (Weekly Special)', price: Number(sp.price) };
+function renderSpecial(sp) {
+  var body = document.getElementById('special-body');
+  if (!body) return;
 
-    body.innerHTML =
-      '<div class="product-row" style="border-bottom:none;">' +
-        '<div class="product-emoji">' + (sp.emoji || '⭐') + '</div>' +
-        '<div class="product-info">' +
-          '<div class="product-name">' + sp.name + ' <span class="specialty-tag">This Week</span></div>' +
-          '<div class="product-desc">' + sp.desc + '</div>' +
-        '</div>' +
-        '<div class="product-price">$' + sp.price + '</div>' +
-        '<div class="qty-wrap">' +
-          '<button type="button" class="qty-btn" onclick="changeQty(&quot;pizza&quot;,-1)">−</button>' +
-          '<input class="qty-input" type="number" id="pizza" value="0" min="0" max="10" oninput="updateSummary()"/>' +
-          '<button type="button" class="qty-btn" onclick="changeQty(&quot;pizza&quot;,1)">+</button>' +
-        '</div>' +
-      '</div>';
+  if (String(sp.available).toLowerCase() === 'no') {
+    body.innerHTML = '<div class="special-unavailable">No special this week — check back Saturday! 🍞</div>';
+    delete PRODUCTS.pizza;
+    return;
   }
 
+  PRODUCTS.pizza = { name: sp.name + ' (Weekly Special)', price: Number(sp.price) };
 
-  // ── ADMIN FUNCTIONS ──────────────────────────────────────
-  function openAdmin() {
-    document.getElementById('admin-overlay').classList.add('open');
-    document.getElementById('admin-pw').value = '';
-    document.getElementById('admin-pw-err').style.display = 'none';
-    document.getElementById('admin-login').style.display = 'block';
-    document.getElementById('admin-form').style.display = 'none';
-    document.getElementById('admin-saved').style.display = 'none';
-    setTimeout(function() { document.getElementById('admin-pw').focus(); }, 100);
-  }
-
-  function closeAdmin() {
-    document.getElementById('admin-overlay').classList.remove('open');
-  }
-
-  function checkAdminPw() {
-    var pw = document.getElementById('admin-pw').value;
-    if (pw === ADMIN_PASSWORD) {
-      document.getElementById('admin-login').style.display = 'none';
-      document.getElementById('admin-form').style.display = 'block';
-      populateAdminForm();
-    } else {
-      document.getElementById('admin-pw-err').style.display = 'block';
-      document.getElementById('admin-pw').value = '';
-      document.getElementById('admin-pw').focus();
-    }
-  }
-
-  function populateAdminForm() {
-    var sp = THIS_WEEK_SPECIAL;
-    document.getElementById('sp-name').value      = sp.name;
-    document.getElementById('sp-desc').value      = sp.desc;
-    document.getElementById('sp-price').value     = sp.price;
-    document.getElementById('sp-emoji').value     = sp.emoji || '';
-    document.getElementById('sp-available').value = sp.available || 'yes';
-    updateAdminPreview();
-    ['sp-name','sp-desc','sp-price','sp-emoji'].forEach(function(id) {
-      document.getElementById(id).addEventListener('input', updateAdminPreview);
-    });
-    document.getElementById('sp-available').addEventListener('change', updateAdminPreview);
-  }
-
-  function updateAdminPreview() {
-    var name  = document.getElementById('sp-name').value  || 'Special Name';
-    var desc  = document.getElementById('sp-desc').value  || 'Description';
-    var price = document.getElementById('sp-price').value || '?';
-    var emoji = document.getElementById('sp-emoji').value || '⭐';
-    var avail = document.getElementById('sp-available').value;
-    var box   = document.getElementById('sp-preview');
-    if (avail === 'no') {
-      box.innerHTML = '<em>No special this week — section will be hidden.</em>';
-    } else {
-      box.innerHTML = emoji + ' <strong>' + name + '</strong> — ' + desc + ' &nbsp;·&nbsp; <strong style="color:var(--crust)">$' + price + '</strong>';
-    }
-  }
-
-  function saveSpecial() {
-    var sp = {
-      name:      document.getElementById('sp-name').value.trim()   || 'Weekly Special',
-      desc:      document.getElementById('sp-desc').value.trim()   || '',
-      price:     Number(document.getElementById('sp-price').value) || 15,
-      emoji:     document.getElementById('sp-emoji').value.trim()  || '⭐',
-      available: document.getElementById('sp-available').value
-    };
-    var json = JSON.stringify(sp, null, 2);
-    var blob = new Blob([json], { type: 'application/json' });
-    var url  = URL.createObjectURL(blob);
-    var a    = document.createElement('a');
-    a.href = url; a.download = 'special.json'; a.click();
-    URL.revokeObjectURL(url);
-    document.getElementById('admin-saved').innerHTML =
-      '✅ <strong>special.json downloaded!</strong><br/>' +
-      '<span style="font-size:.78rem;">Upload it to GitHub alongside index.html!</span>';
-    document.getElementById('admin-saved').style.display = 'block';
-    setTimeout(function() {
-      document.getElementById('admin-saved').style.display = 'none';
-      closeAdmin();
-    }, 4000);
-  }
-
-  document.getElementById('admin-overlay').addEventListener('click', function(e) {
-    if (e.target === this) closeAdmin();
-  });
-
-  // ── PRODUCTS ──────────────────────────────────────────────
-  const PRODUCTS = {
-    plain:    { name: 'Plain Sourdough',            price: 11 },
-    jalapeno: { name: 'Jalapeño Cheddar',           price: 15 },
-    cinnamon: { name: 'Cinnamon Sugar',             price: 15 },
-    pizza:    { name: 'Pizza Loaf (Weekly Special)', price: 15 },
-    cookies:  { name: 'Choc Chip Cookies (½ doz)',  price: 10 },
-  };
-
-  // ── Run on page load ──
-  renderSpecialCard();
-
-  function changeQty(id, delta) {
-    var el  = document.getElementById(id);
-    var val = Math.max(0, Math.min(10, parseInt(el.value || 0) + delta));
-    el.value = val;
-    updateSummary();
-  }
-
-  function updateSummary() {
-    var section = document.getElementById('summary-section');
-    var body    = document.getElementById('summary-body');
-    var rows = ''; var total = 0; var hasItems = false;
-    for (var id in PRODUCTS) {
-      var el = document.getElementById(id);
-      if (!el) continue;
-      var qty = parseInt(el.value || 0);
-      if (qty > 0) {
-        var sub = qty * PRODUCTS[id].price;
-        total += sub; hasItems = true;
-        rows += '<div class="summary-row"><span>' + qty + ' × ' + PRODUCTS[id].name + '</span><strong>$' + sub + '</strong></div>';
-      }
-    }
-    if (hasItems) {
-      section.style.display = 'block';
-      body.innerHTML = rows + '<div class="summary-total"><span>Total</span><span class="total-amount">$' + total + '</span></div>';
-    } else {
-      section.style.display = 'none';
-    }
-  }
-
-  function setError(id, show) {
-    var fg = document.getElementById('fg-' + id);
-    if (fg) fg.classList.toggle('field-error', show);
-  }
-
-  function onPickupChange() {
-    var fg = document.getElementById('fg-pickup');
-    if (fg) fg.classList.remove('field-error');
-    document.getElementById('pickup-error-msg').style.display = 'none';
-  }
-
-  function onPayMethodChange() {
-    var val = (document.querySelector('input[name="paymethod"]:checked') || {}).value || '';
-    document.getElementById('venmo-details').style.display = val === 'venmo' ? 'block' : 'none';
-    document.getElementById('cash-details').style.display  = val === 'cash'  ? 'block' : 'none';
-    document.getElementById('paymethod-error-msg').style.display = 'none';
-    if (val !== 'venmo') { var sel = document.getElementById('paid'); if (sel) sel.value = ''; }
-  }
-
-  function generateOrderNumber() {
-    var now = new Date();
-    var datePart = now.getFullYear().toString() +
-      String(now.getMonth()+1).padStart(2,'0') +
-      String(now.getDate()).padStart(2,'0');
-    var randPart = Math.random().toString(36).substring(2,6).toUpperCase();
-    return 'LL-' + datePart + '-' + randPart;
-  }
-
-  function submitOrder() {
-    var valid = true;
-    var name    = document.getElementById('name').value.trim();
-    var phone   = document.getElementById('phone').value.trim();
-    var email   = document.getElementById('email').value.trim();
-    var address = document.getElementById('address').value.trim();
-    var city    = document.getElementById('city').value.trim();
-    var zip     = document.getElementById('zip').value.trim();
-    var pickupEl  = document.querySelector('input[name="pickup"]:checked');
-    var pickup    = pickupEl ? pickupEl.value : '';
-    var paymethodEl = document.querySelector('input[name="paymethod"]:checked');
-    var paymethod   = paymethodEl ? paymethodEl.value : '';
-    var paid = paymethod === 'venmo' ? document.getElementById('paid').value : 'cash';
-
-    setError('name',    !name);    if (!name) valid = false;
-    setError('phone',   !phone);   if (!phone) valid = false;
-    var badEmail = !email || !/\S+@\S+\.\S+/.test(email);
-    setError('email', badEmail);   if (badEmail) valid = false;
-    setError('address', !address); if (!address) valid = false;
-    setError('city',    !city);    if (!city) valid = false;
-    setError('zip',     !zip);     if (!zip) valid = false;
-
-    if (!pickup) {
-      document.getElementById('fg-pickup').classList.add('field-error');
-      document.getElementById('pickup-error-msg').style.display = 'block';
-      valid = false;
-    }
-    if (!paymethod) {
-      document.getElementById('paymethod-error-msg').style.display = 'block';
-      valid = false;
-    } else if (paymethod === 'venmo' && !paid) {
-      setError('paid', true); valid = false;
-    }
-
-    var totalItems = 0;
-    for (var id in PRODUCTS) {
-      var el = document.getElementById(id);
-      if (el) totalItems += parseInt(el.value || 0);
-    }
-    var orderError = document.getElementById('order-error');
-    if (totalItems === 0) { orderError.style.display = 'block'; valid = false; }
-    else { orderError.style.display = 'none'; }
-
-    if (!valid) return;
-
-    var orderNum = generateOrderNumber();
-    var orderLines = []; var total = 0;
-    for (var id in PRODUCTS) {
-      var el = document.getElementById(id);
-      if (!el) continue;
-      var qty = parseInt(el.value || 0);
-      if (qty > 0) { orderLines.push(qty + '× ' + PRODUCTS[id].name); total += qty * PRODUCTS[id].price; }
-    }
-
-    var pickupLabel = pickup === 'medina'
-      ? 'Medina — 4390 Lakeview Glen Dr (~1:00 PM ET)'
-      : 'Marblehead — 2000 Dorchester Dr (~6:00 PM ET)';
-
-    var payNote = paymethod === 'venmo'
-      ? 'Please send <strong>$' + total + '</strong> to <strong>@LillysLoaves</strong> on Venmo — include <em>"' + orderNum + '"</em> in your note. Unpaid orders may be released after 24 hours.'
-      : 'You selected <strong>cash at pickup</strong>. Please bring exact change (<strong>$' + total + '</strong>) and your order number. 💵';
-
-    document.getElementById('success-body').innerHTML =
-      '<div style="background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;text-align:left;">' +
-        '<div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:4px;">Your Order Number</div>' +
-        '<div style="font-family:\'Playfair Display\',serif;font-size:1.4rem;color:var(--crust);font-weight:700;letter-spacing:.04em;">' + orderNum + '</div>' +
-        '<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">Save this — you\'ll need it for payment & pickup</div>' +
+  body.innerHTML =
+    '<div class="product-row" style="border-bottom:none;">' +
+      '<div class="product-emoji">' + (sp.emoji || '⭐') + '</div>' +
+      '<div class="product-info">' +
+        '<div class="product-name">' + sp.name + ' <span class="specialty-tag">This Week</span></div>' +
+        '<div class="product-desc">' + sp.desc + '</div>' +
       '</div>' +
-      'Thanks, <strong>' + name + '</strong>! Here\'s your order:<br/><br/>' +
-      orderLines.join(' &nbsp;·&nbsp; ') +
-      '<br/><br/>📍 <strong>Pickup:</strong> ' + pickupLabel +
-      '<br/>🏠 <strong>Your address:</strong> ' + address + ', ' + city + ' ' + zip +
-      '<br/><br/>Total: <strong>$' + total + '</strong><br/><br/>' +
-      payNote + '<br/><br/>Lilly can\'t wait to bake for you! 🍞';
+      '<div class="product-price">$' + sp.price + ' each</div>' +
+      '<div class="qty-wrap">' +
+        '<button type="button" class="qty-btn" onclick="changeQty(\'pizza\',-1)">−</button>' +
+        '<input class="qty-input" type="number" id="pizza" value="0" min="0" max="10" readonly/>' +
+        '<button type="button" class="qty-btn" onclick="changeQty(\'pizza\',1)">+</button>' +
+      '</div>' +
+    '</div>';
+}
 
-    // Send to Google Forms
-    var GOOGLE_FORM_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScR_h63pKiRDuEBiUUn_lLZwVOqyTZr1R4KXQLdehxii-_9Jw/formResponse';
-    var formData = new FormData();
-    formData.append('entry.477621901',  name);
-    formData.append('entry.1188160679', phone);
-    formData.append('entry.476074871',  email);
-    formData.append('entry.15440025',   address);
-    formData.append('entry.639923744',  city);
-    formData.append('entry.954004769',  zip);
-    formData.append('entry.840313283',  orderLines.join(', '));
-    formData.append('entry.1001354712', '$' + total);
-    formData.append('entry.1649470580', pickup === 'medina' ? 'Medina' : 'Marblehead');
-    formData.append('entry.4073665',    paymethod === 'venmo' ? 'Venmo' : 'Cash at Pickup');
-    formData.append('entry.1753453129', orderNum);
-    formData.append('entry.251989107',  document.getElementById('notes').value || '');
-    fetch(GOOGLE_FORM_URL, { method: 'POST', mode: 'no-cors', body: formData }).catch(function(){});
+// ─────────────────────────────────────────────
+// QTY + SUMMARY
+// ─────────────────────────────────────────────
+function changeQty(id, delta) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var val = Math.max(0, Math.min(10, parseInt(el.value || 0) + delta));
+  el.value = val;
+  updateSummary();
+}
 
-    document.querySelectorAll('.card').forEach(function(c) { c.style.display = 'none'; });
-    document.querySelectorAll('.window-banner').forEach(function(c) { c.style.display = 'none'; });
-    var sc = document.getElementById('success-card');
-    sc.style.display = 'block';
-    document.getElementById('success-msg').style.display = 'block';
-    sc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+function updateSummary() {
+  var section = document.getElementById('summary-section');
+  var body    = document.getElementById('summary-body');
+  var rows = ''; var total = 0; var hasItems = false;
+  for (var id in PRODUCTS) {
+    var el = document.getElementById(id);
+    if (!el) continue;
+    var qty = parseInt(el.value || 0);
+    if (qty > 0) {
+      var sub = qty * PRODUCTS[id].price;
+      total += sub; hasItems = true;
+      rows += '<div class="summary-row"><span>' + qty + ' x ' + PRODUCTS[id].name + '</span><strong>$' + sub + '</strong></div>';
+    }
+  }
+  if (hasItems) {
+    section.style.display = 'block';
+    body.innerHTML = rows + '<div class="summary-total"><span>Total</span><span class="total-amount">$' + total + '</span></div>';
+  } else {
+    section.style.display = 'none';
+  }
+}
+
+// ─────────────────────────────────────────────
+// PICKUP + PAYMENT TOGGLES
+// ─────────────────────────────────────────────
+function onPickupChange() {
+  var fg = document.getElementById('fg-pickup');
+  if (fg) fg.classList.remove('field-error');
+  document.getElementById('pickup-error-msg').style.display = 'none';
+}
+
+function onPayMethodChange() {
+  var el  = document.querySelector('input[name="paymethod"]:checked');
+  var val = el ? el.value : '';
+  document.getElementById('venmo-details').style.display = (val === 'venmo') ? 'block' : 'none';
+  document.getElementById('cash-details').style.display  = (val === 'cash')  ? 'block' : 'none';
+  document.getElementById('paymethod-error-msg').style.display = 'none';
+  if (val !== 'venmo') { var s = document.getElementById('paid'); if (s) s.value = ''; }
+}
+
+// ─────────────────────────────────────────────
+// VALIDATION HELPER
+// ─────────────────────────────────────────────
+function setError(id, show) {
+  var fg = document.getElementById('fg-' + id);
+  if (fg) fg.classList.toggle('field-error', show);
+}
+
+// ─────────────────────────────────────────────
+// ORDER NUMBER
+// ─────────────────────────────────────────────
+function generateOrderNumber() {
+  var now = new Date();
+  var d = now.getFullYear().toString() +
+    String(now.getMonth()+1).padStart(2,'0') +
+    String(now.getDate()).padStart(2,'0');
+  var r = Math.random().toString(36).substring(2,6).toUpperCase();
+  return 'LL-' + d + '-' + r;
+}
+
+// ─────────────────────────────────────────────
+// SUBMIT
+// ─────────────────────────────────────────────
+function submitOrder() {
+  var valid = true;
+  var name    = document.getElementById('name').value.trim();
+  var phone   = document.getElementById('phone').value.trim();
+  var email   = document.getElementById('email').value.trim();
+  var address = document.getElementById('address').value.trim();
+  var city    = document.getElementById('city').value.trim();
+  var zip     = document.getElementById('zip').value.trim();
+  var pEl     = document.querySelector('input[name="pickup"]:checked');
+  var pickup  = pEl ? pEl.value : '';
+  var pmEl    = document.querySelector('input[name="paymethod"]:checked');
+  var paymethod = pmEl ? pmEl.value : '';
+  var paid    = (paymethod === 'venmo') ? document.getElementById('paid').value : 'cash';
+
+  setError('name',    !name);    if (!name) valid = false;
+  setError('phone',   !phone);   if (!phone) valid = false;
+  var badEmail = !email || !/\S+@\S+\.\S+/.test(email);
+  setError('email',   badEmail); if (badEmail) valid = false;
+  setError('address', !address); if (!address) valid = false;
+  setError('city',    !city);    if (!city) valid = false;
+  setError('zip',     !zip);     if (!zip) valid = false;
+
+  if (!pickup) {
+    document.getElementById('fg-pickup').classList.add('field-error');
+    document.getElementById('pickup-error-msg').style.display = 'block';
+    valid = false;
+  }
+  if (!paymethod) {
+    document.getElementById('paymethod-error-msg').style.display = 'block';
+    valid = false;
+  } else if (paymethod === 'venmo' && !paid) {
+    setError('paid', true); valid = false;
   }
 
-  function resetForm() {
-    ['name','phone','email','address','city','zip','paid','notes'].forEach(function(id) {
-      var el = document.getElementById(id); if (el) el.value = '';
-    });
-    document.querySelectorAll('input[name="pickup"]').forEach(function(r) { r.checked = false; });
-    document.querySelectorAll('input[name="paymethod"]').forEach(function(r) { r.checked = false; });
-    document.getElementById('venmo-details').style.display = 'none';
-    document.getElementById('cash-details').style.display  = 'none';
-    document.getElementById('paymethod-error-msg').style.display = 'none';
-    document.getElementById('pickup-error-msg').style.display = 'none';
-    for (var id in PRODUCTS) { var el = document.getElementById(id); if (el) el.value = 0; }
-    updateSummary();
-    document.querySelectorAll('.card').forEach(function(c) { c.style.display = 'block'; });
-    document.querySelectorAll('.window-banner').forEach(function(c) { c.style.display = 'flex'; });
-    document.getElementById('success-card').style.display = 'none';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  var totalItems = 0;
+  for (var id in PRODUCTS) {
+    var el = document.getElementById(id);
+    if (el) totalItems += parseInt(el.value || 0);
   }
+  var oe = document.getElementById('order-error');
+  if (totalItems === 0) { oe.style.display = 'block'; valid = false; }
+  else { oe.style.display = 'none'; }
+
+  if (!valid) return;
+
+  var orderNum   = generateOrderNumber();
+  var orderLines = [];
+  var total      = 0;
+  for (var id in PRODUCTS) {
+    var el = document.getElementById(id);
+    if (!el) continue;
+    var qty = parseInt(el.value || 0);
+    if (qty > 0) { orderLines.push(qty + 'x ' + PRODUCTS[id].name); total += qty * PRODUCTS[id].price; }
+  }
+
+  var pickupLabel = (pickup === 'medina')
+    ? 'Medina — 4390 Lakeview Glen Dr (~1:00 PM ET)'
+    : 'Marblehead — 2000 Dorchester Dr (~6:00 PM ET)';
+
+  var payNote = (paymethod === 'venmo')
+    ? 'Please send <strong>$' + total + '</strong> to <strong>@LillysLoaves</strong> on Venmo — use order number <strong>' + orderNum + '</strong> as your note.'
+    : 'You chose <strong>cash at pickup</strong>. Please bring exact change (<strong>$' + total + '</strong>) and your order number.';
+
+  document.getElementById('success-body').innerHTML =
+    '<div style="background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;">' +
+      '<div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:4px;">Your Order Number</div>' +
+      '<div style="font-family:\'Playfair Display\',serif;font-size:1.4rem;color:var(--crust);font-weight:700;">' + orderNum + '</div>' +
+      '<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">Save this — you\'ll need it at pickup</div>' +
+    '</div>' +
+    'Thanks <strong>' + name + '</strong>!<br/><br/>' +
+    orderLines.join(' &middot; ') +
+    '<br/><br/>📍 <strong>Pickup:</strong> ' + pickupLabel +
+    '<br/>🏠 ' + address + ', ' + city + ' ' + zip +
+    '<br/><br/><strong>Total: $' + total + '</strong><br/><br/>' +
+    payNote + '<br/><br/>Lilly can\'t wait to bake for you! 🍞';
+
+  // Send to Google Forms
+  var fd = new FormData();
+  fd.append('entry.477621901',  name);
+  fd.append('entry.1188160679', phone);
+  fd.append('entry.476074871',  email);
+  fd.append('entry.15440025',   address);
+  fd.append('entry.639923744',  city);
+  fd.append('entry.954004769',  zip);
+  fd.append('entry.840313283',  orderLines.join(', '));
+  fd.append('entry.1001354712', '$' + total);
+  fd.append('entry.1649470580', (pickup === 'medina') ? 'Medina' : 'Marblehead');
+  fd.append('entry.4073665',    (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup');
+  fd.append('entry.1753453129', orderNum);
+  fd.append('entry.251989107',  document.getElementById('notes').value || '');
+  fetch(GOOGLE_FORM_URL, { method:'POST', mode:'no-cors', body:fd }).catch(function(){});
+
+  // Show success
+  document.querySelectorAll('.card').forEach(function(c){ c.style.display='none'; });
+  document.querySelectorAll('.window-banner').forEach(function(c){ c.style.display='none'; });
+  var sc = document.getElementById('success-card');
+  sc.style.display = 'block';
+  document.getElementById('success-msg').style.display = 'block';
+  sc.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ─────────────────────────────────────────────
+// RESET
+// ─────────────────────────────────────────────
+function resetForm() {
+  ['name','phone','email','address','city','zip','notes'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('paid').value = '';
+  document.querySelectorAll('input[name="pickup"]').forEach(function(r){ r.checked=false; });
+  document.querySelectorAll('input[name="paymethod"]').forEach(function(r){ r.checked=false; });
+  document.getElementById('venmo-details').style.display = 'none';
+  document.getElementById('cash-details').style.display  = 'none';
+  document.getElementById('paymethod-error-msg').style.display = 'none';
+  document.getElementById('pickup-error-msg').style.display    = 'none';
+  for (var id in PRODUCTS) { var el=document.getElementById(id); if(el) el.value=0; }
+  updateSummary();
+  document.querySelectorAll('.card').forEach(function(c){ c.style.display='block'; });
+  document.querySelectorAll('.window-banner').forEach(function(c){ c.style.display='flex'; });
+  document.getElementById('success-card').style.display = 'none';
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ─────────────────────────────────────────────
+// ADMIN PANEL
+// ─────────────────────────────────────────────
+function openAdmin() {
+  document.getElementById('admin-overlay').classList.add('open');
+  document.getElementById('admin-pw').value = '';
+  document.getElementById('admin-pw-err').style.display = 'none';
+  document.getElementById('admin-login').style.display = 'block';
+  document.getElementById('admin-form').style.display  = 'none';
+  document.getElementById('admin-saved').style.display = 'none';
+  setTimeout(function(){ document.getElementById('admin-pw').focus(); }, 100);
+}
+
+function closeAdmin() {
+  document.getElementById('admin-overlay').classList.remove('open');
+}
+
+function checkAdminPw() {
+  if (document.getElementById('admin-pw').value === ADMIN_PASSWORD) {
+    document.getElementById('admin-login').style.display = 'none';
+    document.getElementById('admin-form').style.display  = 'block';
+    populateAdminForm();
+  } else {
+    document.getElementById('admin-pw-err').style.display = 'block';
+    document.getElementById('admin-pw').value = '';
+    document.getElementById('admin-pw').focus();
+  }
+}
+
+function populateAdminForm() {
+  // Pre-fill with current loaded special if available
+  var sp = window._currentSpecial || DEFAULT_SPECIAL;
+  document.getElementById('sp-name').value      = sp.name      || '';
+  document.getElementById('sp-desc').value      = sp.desc      || '';
+  document.getElementById('sp-price').value     = sp.price     || 15;
+  document.getElementById('sp-emoji').value     = sp.emoji     || '⭐';
+  document.getElementById('sp-available').value = sp.available || 'yes';
+  updateAdminPreview();
+  ['sp-name','sp-desc','sp-price','sp-emoji'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', updateAdminPreview);
+  });
+  document.getElementById('sp-available').addEventListener('change', updateAdminPreview);
+}
+
+function updateAdminPreview() {
+  var name  = document.getElementById('sp-name').value  || 'Special Name';
+  var desc  = document.getElementById('sp-desc').value  || 'Description';
+  var price = document.getElementById('sp-price').value || '?';
+  var emoji = document.getElementById('sp-emoji').value || '⭐';
+  var avail = document.getElementById('sp-available').value;
+  var box   = document.getElementById('sp-preview');
+  box.innerHTML = (avail === 'no')
+    ? '<em>No special this week</em>'
+    : emoji + ' <strong>' + name + '</strong> — ' + desc + ' · <strong style="color:var(--crust)">$' + price + '</strong>';
+}
+
+function saveSpecial() {
+  var sp = {
+    name:      document.getElementById('sp-name').value.trim()   || 'Weekly Special',
+    desc:      document.getElementById('sp-desc').value.trim()   || '',
+    price:     Number(document.getElementById('sp-price').value) || 15,
+    emoji:     document.getElementById('sp-emoji').value.trim()  || '⭐',
+    available: document.getElementById('sp-available').value
+  };
+  // Show instructions — Google Sheet must be updated manually
+  var msg = document.getElementById('admin-saved');
+  msg.innerHTML =
+    '✅ To publish this special:<br/>' +
+    '<span style="font-size:.78rem;">Open your <strong>Lilly\'s Weekly Special</strong> Google Sheet and update column B with these values:<br/><br/>' +
+    '<strong>name:</strong> ' + sp.name + '<br/>' +
+    '<strong>desc:</strong> ' + sp.desc + '<br/>' +
+    '<strong>price:</strong> ' + sp.price + '<br/>' +
+    '<strong>emoji:</strong> ' + sp.emoji + '<br/>' +
+    '<strong>available:</strong> ' + sp.available + '</span>';
+  msg.style.display = 'block';
+}
+
+document.getElementById('admin-overlay').addEventListener('click', function(e){
+  if (e.target === this) closeAdmin();
+});
+
+// ─────────────────────────────────────────────
+// INIT — load special on page load
+// ─────────────────────────────────────────────
+window._specialLoaded = false;
+window._currentSpecial = DEFAULT_SPECIAL;
+loadSpecialFromSheet();
 
 </script>
 </body>
