@@ -957,10 +957,285 @@
         '</div>' +
         '<div class="product-price">$' + sp.price + '</div>' +
         '<div class="qty-wrap">' +
-          '<button type="button" class="qty-btn" onclick="changeQty('pizza',-1)">−</button>' +
+          '<button type="button" class="qty-btn" onclick="changeQty(&quot;pizza&quot;,-1)">−</button>' +
           '<input class="qty-input" type="number" id="pizza" value="0" min="0" max="10" oninput="updateSummary()"/>' +
-          '<button type="button" class="qty-btn" onclick="changeQty('pizza',1)">+</button>' +
+          '<button type="button" class="qty-btn" onclick="changeQty(&quot;pizza&quot;,1)">+</button>' +
         '</div>' +
       '</div>';
   }
 
+
+  // ── ADMIN FUNCTIONS ──────────────────────────────────────
+  function openAdmin() {
+    document.getElementById('admin-overlay').classList.add('open');
+    document.getElementById('admin-pw').value = '';
+    document.getElementById('admin-pw-err').style.display = 'none';
+    document.getElementById('admin-login').style.display = 'block';
+    document.getElementById('admin-form').style.display = 'none';
+    document.getElementById('admin-saved').style.display = 'none';
+    setTimeout(function() { document.getElementById('admin-pw').focus(); }, 100);
+  }
+
+  function closeAdmin() {
+    document.getElementById('admin-overlay').classList.remove('open');
+  }
+
+  function checkAdminPw() {
+    var pw = document.getElementById('admin-pw').value;
+    if (pw === ADMIN_PASSWORD) {
+      document.getElementById('admin-login').style.display = 'none';
+      document.getElementById('admin-form').style.display = 'block';
+      populateAdminForm();
+    } else {
+      document.getElementById('admin-pw-err').style.display = 'block';
+      document.getElementById('admin-pw').value = '';
+      document.getElementById('admin-pw').focus();
+    }
+  }
+
+  function populateAdminForm() {
+    var sp = THIS_WEEK_SPECIAL;
+    document.getElementById('sp-name').value      = sp.name;
+    document.getElementById('sp-desc').value      = sp.desc;
+    document.getElementById('sp-price').value     = sp.price;
+    document.getElementById('sp-emoji').value     = sp.emoji || '';
+    document.getElementById('sp-available').value = sp.available || 'yes';
+    updateAdminPreview();
+    ['sp-name','sp-desc','sp-price','sp-emoji'].forEach(function(id) {
+      document.getElementById(id).addEventListener('input', updateAdminPreview);
+    });
+    document.getElementById('sp-available').addEventListener('change', updateAdminPreview);
+  }
+
+  function updateAdminPreview() {
+    var name  = document.getElementById('sp-name').value  || 'Special Name';
+    var desc  = document.getElementById('sp-desc').value  || 'Description';
+    var price = document.getElementById('sp-price').value || '?';
+    var emoji = document.getElementById('sp-emoji').value || '⭐';
+    var avail = document.getElementById('sp-available').value;
+    var box   = document.getElementById('sp-preview');
+    if (avail === 'no') {
+      box.innerHTML = '<em>No special this week — section will be hidden.</em>';
+    } else {
+      box.innerHTML = emoji + ' <strong>' + name + '</strong> — ' + desc + ' &nbsp;·&nbsp; <strong style="color:var(--crust)">$' + price + '</strong>';
+    }
+  }
+
+  function saveSpecial() {
+    var sp = {
+      name:      document.getElementById('sp-name').value.trim()   || 'Weekly Special',
+      desc:      document.getElementById('sp-desc').value.trim()   || '',
+      price:     Number(document.getElementById('sp-price').value) || 15,
+      emoji:     document.getElementById('sp-emoji').value.trim()  || '⭐',
+      available: document.getElementById('sp-available').value
+    };
+    var json = JSON.stringify(sp, null, 2);
+    var blob = new Blob([json], { type: 'application/json' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url; a.download = 'special.json'; a.click();
+    URL.revokeObjectURL(url);
+    document.getElementById('admin-saved').innerHTML =
+      '✅ <strong>special.json downloaded!</strong><br/>' +
+      '<span style="font-size:.78rem;">Upload it to GitHub alongside index.html!</span>';
+    document.getElementById('admin-saved').style.display = 'block';
+    setTimeout(function() {
+      document.getElementById('admin-saved').style.display = 'none';
+      closeAdmin();
+    }, 4000);
+  }
+
+  document.getElementById('admin-overlay').addEventListener('click', function(e) {
+    if (e.target === this) closeAdmin();
+  });
+
+  // ── PRODUCTS ──────────────────────────────────────────────
+  const PRODUCTS = {
+    plain:    { name: 'Plain Sourdough',            price: 11 },
+    jalapeno: { name: 'Jalapeño Cheddar',           price: 15 },
+    cinnamon: { name: 'Cinnamon Sugar',             price: 15 },
+    pizza:    { name: 'Pizza Loaf (Weekly Special)', price: 15 },
+    cookies:  { name: 'Choc Chip Cookies (½ doz)',  price: 10 },
+  };
+
+  // ── Run on page load ──
+  renderSpecialCard();
+
+  function changeQty(id, delta) {
+    var el  = document.getElementById(id);
+    var val = Math.max(0, Math.min(10, parseInt(el.value || 0) + delta));
+    el.value = val;
+    updateSummary();
+  }
+
+  function updateSummary() {
+    var section = document.getElementById('summary-section');
+    var body    = document.getElementById('summary-body');
+    var rows = ''; var total = 0; var hasItems = false;
+    for (var id in PRODUCTS) {
+      var el = document.getElementById(id);
+      if (!el) continue;
+      var qty = parseInt(el.value || 0);
+      if (qty > 0) {
+        var sub = qty * PRODUCTS[id].price;
+        total += sub; hasItems = true;
+        rows += '<div class="summary-row"><span>' + qty + ' × ' + PRODUCTS[id].name + '</span><strong>$' + sub + '</strong></div>';
+      }
+    }
+    if (hasItems) {
+      section.style.display = 'block';
+      body.innerHTML = rows + '<div class="summary-total"><span>Total</span><span class="total-amount">$' + total + '</span></div>';
+    } else {
+      section.style.display = 'none';
+    }
+  }
+
+  function setError(id, show) {
+    var fg = document.getElementById('fg-' + id);
+    if (fg) fg.classList.toggle('field-error', show);
+  }
+
+  function onPickupChange() {
+    var fg = document.getElementById('fg-pickup');
+    if (fg) fg.classList.remove('field-error');
+    document.getElementById('pickup-error-msg').style.display = 'none';
+  }
+
+  function onPayMethodChange() {
+    var val = (document.querySelector('input[name="paymethod"]:checked') || {}).value || '';
+    document.getElementById('venmo-details').style.display = val === 'venmo' ? 'block' : 'none';
+    document.getElementById('cash-details').style.display  = val === 'cash'  ? 'block' : 'none';
+    document.getElementById('paymethod-error-msg').style.display = 'none';
+    if (val !== 'venmo') { var sel = document.getElementById('paid'); if (sel) sel.value = ''; }
+  }
+
+  function generateOrderNumber() {
+    var now = new Date();
+    var datePart = now.getFullYear().toString() +
+      String(now.getMonth()+1).padStart(2,'0') +
+      String(now.getDate()).padStart(2,'0');
+    var randPart = Math.random().toString(36).substring(2,6).toUpperCase();
+    return 'LL-' + datePart + '-' + randPart;
+  }
+
+  function submitOrder() {
+    var valid = true;
+    var name    = document.getElementById('name').value.trim();
+    var phone   = document.getElementById('phone').value.trim();
+    var email   = document.getElementById('email').value.trim();
+    var address = document.getElementById('address').value.trim();
+    var city    = document.getElementById('city').value.trim();
+    var zip     = document.getElementById('zip').value.trim();
+    var pickupEl  = document.querySelector('input[name="pickup"]:checked');
+    var pickup    = pickupEl ? pickupEl.value : '';
+    var paymethodEl = document.querySelector('input[name="paymethod"]:checked');
+    var paymethod   = paymethodEl ? paymethodEl.value : '';
+    var paid = paymethod === 'venmo' ? document.getElementById('paid').value : 'cash';
+
+    setError('name',    !name);    if (!name) valid = false;
+    setError('phone',   !phone);   if (!phone) valid = false;
+    var badEmail = !email || !/\S+@\S+\.\S+/.test(email);
+    setError('email', badEmail);   if (badEmail) valid = false;
+    setError('address', !address); if (!address) valid = false;
+    setError('city',    !city);    if (!city) valid = false;
+    setError('zip',     !zip);     if (!zip) valid = false;
+
+    if (!pickup) {
+      document.getElementById('fg-pickup').classList.add('field-error');
+      document.getElementById('pickup-error-msg').style.display = 'block';
+      valid = false;
+    }
+    if (!paymethod) {
+      document.getElementById('paymethod-error-msg').style.display = 'block';
+      valid = false;
+    } else if (paymethod === 'venmo' && !paid) {
+      setError('paid', true); valid = false;
+    }
+
+    var totalItems = 0;
+    for (var id in PRODUCTS) {
+      var el = document.getElementById(id);
+      if (el) totalItems += parseInt(el.value || 0);
+    }
+    var orderError = document.getElementById('order-error');
+    if (totalItems === 0) { orderError.style.display = 'block'; valid = false; }
+    else { orderError.style.display = 'none'; }
+
+    if (!valid) return;
+
+    var orderNum = generateOrderNumber();
+    var orderLines = []; var total = 0;
+    for (var id in PRODUCTS) {
+      var el = document.getElementById(id);
+      if (!el) continue;
+      var qty = parseInt(el.value || 0);
+      if (qty > 0) { orderLines.push(qty + '× ' + PRODUCTS[id].name); total += qty * PRODUCTS[id].price; }
+    }
+
+    var pickupLabel = pickup === 'medina'
+      ? 'Medina — 4390 Lakeview Glen Dr (~1:00 PM ET)'
+      : 'Marblehead — 2000 Dorchester Dr (~6:00 PM ET)';
+
+    var payNote = paymethod === 'venmo'
+      ? 'Please send <strong>$' + total + '</strong> to <strong>@LillysLoaves</strong> on Venmo — include <em>"' + orderNum + '"</em> in your note. Unpaid orders may be released after 24 hours.'
+      : 'You selected <strong>cash at pickup</strong>. Please bring exact change (<strong>$' + total + '</strong>) and your order number. 💵';
+
+    document.getElementById('success-body').innerHTML =
+      '<div style="background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;text-align:left;">' +
+        '<div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:4px;">Your Order Number</div>' +
+        '<div style="font-family:\'Playfair Display\',serif;font-size:1.4rem;color:var(--crust);font-weight:700;letter-spacing:.04em;">' + orderNum + '</div>' +
+        '<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">Save this — you\'ll need it for payment & pickup</div>' +
+      '</div>' +
+      'Thanks, <strong>' + name + '</strong>! Here\'s your order:<br/><br/>' +
+      orderLines.join(' &nbsp;·&nbsp; ') +
+      '<br/><br/>📍 <strong>Pickup:</strong> ' + pickupLabel +
+      '<br/>🏠 <strong>Your address:</strong> ' + address + ', ' + city + ' ' + zip +
+      '<br/><br/>Total: <strong>$' + total + '</strong><br/><br/>' +
+      payNote + '<br/><br/>Lilly can\'t wait to bake for you! 🍞';
+
+    // Send to Google Forms
+    var GOOGLE_FORM_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScR_h63pKiRDuEBiUUn_lLZwVOqyTZr1R4KXQLdehxii-_9Jw/formResponse';
+    var formData = new FormData();
+    formData.append('entry.477621901',  name);
+    formData.append('entry.1188160679', phone);
+    formData.append('entry.476074871',  email);
+    formData.append('entry.15440025',   address);
+    formData.append('entry.639923744',  city);
+    formData.append('entry.954004769',  zip);
+    formData.append('entry.840313283',  orderLines.join(', '));
+    formData.append('entry.1001354712', '$' + total);
+    formData.append('entry.1649470580', pickup === 'medina' ? 'Medina' : 'Marblehead');
+    formData.append('entry.4073665',    paymethod === 'venmo' ? 'Venmo' : 'Cash at Pickup');
+    formData.append('entry.1753453129', orderNum);
+    formData.append('entry.251989107',  document.getElementById('notes').value || '');
+    fetch(GOOGLE_FORM_URL, { method: 'POST', mode: 'no-cors', body: formData }).catch(function(){});
+
+    document.querySelectorAll('.card').forEach(function(c) { c.style.display = 'none'; });
+    document.querySelectorAll('.window-banner').forEach(function(c) { c.style.display = 'none'; });
+    var sc = document.getElementById('success-card');
+    sc.style.display = 'block';
+    document.getElementById('success-msg').style.display = 'block';
+    sc.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetForm() {
+    ['name','phone','email','address','city','zip','paid','notes'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.querySelectorAll('input[name="pickup"]').forEach(function(r) { r.checked = false; });
+    document.querySelectorAll('input[name="paymethod"]').forEach(function(r) { r.checked = false; });
+    document.getElementById('venmo-details').style.display = 'none';
+    document.getElementById('cash-details').style.display  = 'none';
+    document.getElementById('paymethod-error-msg').style.display = 'none';
+    document.getElementById('pickup-error-msg').style.display = 'none';
+    for (var id in PRODUCTS) { var el = document.getElementById(id); if (el) el.value = 0; }
+    updateSummary();
+    document.querySelectorAll('.card').forEach(function(c) { c.style.display = 'block'; });
+    document.querySelectorAll('.window-banner').forEach(function(c) { c.style.display = 'flex'; });
+    document.getElementById('success-card').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+</script>
+</body>
+</html>
