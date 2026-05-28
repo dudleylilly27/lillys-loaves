@@ -402,7 +402,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 // ─────────────────────────────────────────────
 var ADMIN_PASSWORD = 'lillybakes2024';
 var SHEET_ID       = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
-var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:json&sheet=Sheet1';
+var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Sheet1';
 
 var GOOGLE_FORM_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScR_h63pKiRDuEBiUUn_lLZwVOqyTZr1R4KXQLdehxii-_9Jw/formResponse';
 
@@ -430,31 +430,32 @@ var PRODUCTS = {
 // ─────────────────────────────────────────────
 function loadSpecialFromSheet() {
   var url = SHEET_URL + '&nocache=' + Date.now();
-  var script = document.createElement('script');
-  script.src = url.replace('tqx=out:json', 'tqx=out:json&tqrt=json&callback=handleSheetData');
-  script.onerror = function() { renderSpecial(DEFAULT_SPECIAL); };
-  document.head.appendChild(script);
-  // Timeout fallback
-  setTimeout(function() {
-    if (!window._specialLoaded) { renderSpecial(DEFAULT_SPECIAL); }
-  }, 5000);
-}
-
-function handleSheetData(data) {
-  window._specialLoaded = true;
-  try {
-    var rows = data.table.rows;
-    var sp = {};
-    for (var i = 0; i < rows.length; i++) {
-      var key = rows[i].c[0] ? rows[i].c[0].v : null;
-      var val = rows[i].c[1] ? rows[i].c[1].v : null;
-      if (key) sp[key] = val;
-    }
-    if (!sp.name) { renderSpecial(DEFAULT_SPECIAL); return; }
-    renderSpecial(sp);
-  } catch(e) {
-    renderSpecial(DEFAULT_SPECIAL);
-  }
+  fetch(url)
+    .then(function(r) {
+      if (!r.ok) throw new Error('Sheet not accessible');
+      return r.text();
+    })
+    .then(function(csv) {
+      // Parse simple CSV: each row is "key","value"
+      var sp = {};
+      var lines = csv.trim().split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].replace(/\r/g, '');
+        // Remove surrounding quotes and split on first comma
+        var parts = line.split(',');
+        if (parts.length >= 2) {
+          var key = parts[0].replace(/^"|"$/g, '').trim();
+          var val = parts.slice(1).join(',').replace(/^"|"$/g, '').trim();
+          if (key) sp[key] = val;
+        }
+      }
+      window._currentSpecial = sp;
+      if (!sp.name) { renderSpecial(DEFAULT_SPECIAL); return; }
+      renderSpecial(sp);
+    })
+    .catch(function() {
+      renderSpecial(DEFAULT_SPECIAL);
+    });
 }
 
 function renderSpecial(sp) {
@@ -766,7 +767,6 @@ document.getElementById('admin-overlay').addEventListener('click', function(e){
 // ─────────────────────────────────────────────
 // INIT — load special on page load
 // ─────────────────────────────────────────────
-window._specialLoaded = false;
 window._currentSpecial = DEFAULT_SPECIAL;
 loadSpecialFromSheet();
 
