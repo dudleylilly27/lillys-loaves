@@ -76,7 +76,7 @@ textarea:focus{border-color:var(--crust);box-shadow:0 0 0 3px rgba(200,129,58,.1
 footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 .admin-trigger{display:inline-block;margin-top:6px;font-size:.72rem;color:var(--border);cursor:pointer;transition:color .2s;user-select:none}
 .admin-trigger:hover{color:var(--muted)}
-.pickup-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px}
+.pickup-options{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:8px}
 .pickup-card{cursor:pointer;display:block}
 .pickup-card input[type="radio"]{display:none}
 .pickup-card-inner{border:2px solid var(--border);border-radius:10px;padding:14px;background:var(--cream);transition:border-color .2s,background .2s,box-shadow .2s}
@@ -122,7 +122,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 .admin-divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 .admin-preview-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
 .admin-preview-box{background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:.88rem;color:var(--dark);line-height:1.5}
-@media(max-width:480px){.two-col,.pickup-options,.pay-toggle,.admin-row{grid-template-columns:1fr}.form-body{padding:20px}}
+@media(max-width:540px){.pickup-options{grid-template-columns:1fr 1fr}}@media(max-width:480px){.two-col,.pickup-options,.pay-toggle,.admin-row{grid-template-columns:1fr}.form-body{padding:20px}}
 </style>
 </head>
 <body>
@@ -281,6 +281,13 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
           <div class="pickup-card-inner">
             <div class="pickup-top"><span class="pickup-icon">⚓</span><div><div class="pickup-city">Marblehead</div><div class="pickup-time">~6:00 PM ET</div></div></div>
             <div class="pickup-addr">2000 Dorchester Dr<br/>Marblehead, OH 43440</div>
+          </div>
+        </label>
+        <label class="pickup-card" for="pickup-ridgewood">
+          <input type="radio" name="pickup" id="pickup-ridgewood" value="ridgewood" onchange="onPickupChange()"/>
+          <div class="pickup-card-inner">
+            <div class="pickup-top"><span class="pickup-icon">🐴</span><div><div class="pickup-city">Ridgewood Stables</div><div class="pickup-time">~9:00 AM ET</div></div></div>
+            <div class="pickup-addr">2250 Ridgewood Rd<br/>Medina, OH 44256</div>
           </div>
         </label>
       </div>
@@ -617,7 +624,9 @@ function submitOrder() {
 
   var pickupLabel = (pickup === 'medina')
     ? 'Medina — 4390 Lakeview Glen Dr (~1:00 PM ET)'
-    : 'Marblehead — 2000 Dorchester Dr (~6:00 PM ET)';
+    : (pickup === 'marblehead')
+    ? 'Marblehead — 2000 Dorchester Dr (~6:00 PM ET)'
+    : 'Ridgewood Stables — 2250 Ridgewood Rd, Medina OH 44256 (~9:00 AM ETrsday)';
 
   var payNote = (paymethod === 'venmo')
     ? 'Please send <strong>$' + total + '</strong> to <strong>@lillydud</strong> on Venmo — use order number <strong>' + orderNum + '</strong> as your note.'
@@ -650,7 +659,7 @@ function submitOrder() {
   fd.append('entry.1878685418', String(parseInt((document.getElementById('pizza') || {value:'0'}).value || 0)));
   fd.append('entry.1295480790', String(parseInt(document.getElementById('cookies').value || 0)));
   fd.append('entry.1001354712', '$' + total);
-  fd.append('entry.1649470580', (pickup === 'medina') ? 'Medina' : 'Marblehead');
+  fd.append('entry.1649470580', (pickup === 'medina') ? 'Medina' : (pickup === 'marblehead') ? 'Marblehead' : 'Ridgewood Stables');
   fd.append('entry.4073665',    (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup');
   fd.append('entry.1753453129', orderNum);
   fd.append('entry.251989107',  document.getElementById('notes').value || '');
