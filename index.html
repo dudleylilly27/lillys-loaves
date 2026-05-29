@@ -419,7 +419,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 // ─────────────────────────────────────────────
 var ADMIN_PASSWORD = 'lillybakes2024';
 var SHEET_ID       = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
-var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=Sheet1';
+var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&sheet=Sheet1';
 
 var GOOGLE_FORM_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScR_h63pKiRDuEBiUUn_lLZwVOqyTZr1R4KXQLdehxii-_9Jw/formResponse';
 
@@ -447,21 +447,16 @@ var PRODUCTS = {
 // ─────────────────────────────────────────────
 function loadSpecialFromSheet() {
   var url = SHEET_URL + '&nocache=' + Date.now();
-  fetch(url)
-    .then(function(r) {
-      if (!r.ok) throw new Error('Sheet not accessible');
-      return r.text();
-    })
+  fetch(url, { mode: 'cors', redirect: 'follow' })
+    .then(function(r) { return r.text(); })
     .then(function(csv) {
-      // Parse simple CSV: each row is "key","value"
       var sp = {};
       var lines = csv.trim().split('\n');
       for (var i = 0; i < lines.length; i++) {
         var line = lines[i].replace(/\r/g, '');
-        // Remove surrounding quotes and split on first comma
         var parts = line.split(',');
         if (parts.length >= 2) {
-          var key = parts[0].replace(/^"|"$/g, '').trim();
+          var key = parts[0].replace(/^"|"$/g, '').trim().toLowerCase();
           var val = parts.slice(1).join(',').replace(/^"|"$/g, '').trim();
           if (key) sp[key] = val;
         }
@@ -470,7 +465,8 @@ function loadSpecialFromSheet() {
       if (!sp.name) { renderSpecial(DEFAULT_SPECIAL); return; }
       renderSpecial(sp);
     })
-    .catch(function() {
+    .catch(function(err) {
+      console.log('Sheet fetch failed, using default:', err);
       renderSpecial(DEFAULT_SPECIAL);
     });
 }
