@@ -76,17 +76,21 @@ textarea:focus{border-color:var(--crust);box-shadow:0 0 0 3px rgba(200,129,58,.1
 footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 .admin-trigger{display:inline-block;margin-top:6px;font-size:.72rem;color:var(--border);cursor:pointer;transition:color .2s;user-select:none}
 .admin-trigger:hover{color:var(--muted)}
-.pickup-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:8px;align-items:stretch}
-.pickup-card{cursor:pointer;display:flex;flex-direction:column}
+.pickup-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:8px}
+.pickup-card{cursor:pointer;display:flex}
 .pickup-card input[type="radio"]{display:none}
-.pickup-card-inner{border:2px solid var(--border);border-radius:10px;padding:14px;background:var(--cream);transition:border-color .2s,background .2s,box-shadow .2s;height:100%;display:flex;flex-direction:column;justify-content:space-between}
+.pickup-card-inner{
+  border:2px solid var(--border);border-radius:10px;padding:12px 10px;
+  background:var(--cream);transition:border-color .2s,background .2s,box-shadow .2s;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  width:100%;min-height:120px;justify-content:center;gap:4px;
+}
 .pickup-card input:checked + .pickup-card-inner{border-color:var(--crust);background:#fff;box-shadow:0 0 0 3px rgba(200,129,58,.12)}
 .pickup-card:hover .pickup-card-inner{border-color:var(--crust)}
-.pickup-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.pickup-icon{font-size:1.4rem;flex-shrink:0}
-.pickup-city{font-family:'Playfair Display',serif;font-size:.88rem;font-weight:700;color:var(--dark);word-break:break-word}
-.pickup-time{font-size:.72rem;color:var(--crust);font-weight:700;margin-top:1px}
-.pickup-addr{font-size:.77rem;color:var(--muted);line-height:1.5;word-break:break-word}
+.pickup-icon{font-size:1.5rem;line-height:1;margin-bottom:2px}
+.pickup-city{font-family:'Playfair Display',serif;font-size:.82rem;font-weight:700;color:var(--dark);line-height:1.2}
+.pickup-time{font-size:.68rem;color:var(--crust);font-weight:700;margin-top:1px}
+.pickup-addr{font-size:.68rem;color:var(--muted);line-height:1.4;margin-top:3px}
 .pickup-note{display:flex;gap:8px;align-items:flex-start;background:var(--warm);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:.78rem;color:var(--muted);line-height:1.5;margin-top:10px}
 .pay-toggle{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pay-opt{cursor:pointer;display:block}
@@ -122,7 +126,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 .admin-divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 .admin-preview-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
 .admin-preview-box{background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:.88rem;color:var(--dark);line-height:1.5}
-@media(max-width:540px){.pickup-options{grid-template-columns:1fr 1fr}}@media(max-width:480px){.two-col,.pickup-options,.pay-toggle,.admin-row{grid-template-columns:1fr}.form-body{padding:20px}}
+@media(max-width:520px){.pickup-options{grid-template-columns:1fr 1fr}}@media(max-width:480px){.two-col,.pay-toggle,.admin-row{grid-template-columns:1fr}.pickup-options{grid-template-columns:1fr 1fr}.form-body{padding:20px}}
 </style>
 </head>
 <body>
@@ -272,21 +276,27 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
         <label class="pickup-card" for="pickup-medina">
           <input type="radio" name="pickup" id="pickup-medina" value="medina" onchange="onPickupChange()"/>
           <div class="pickup-card-inner">
-            <div class="pickup-top"><span class="pickup-icon">🏘️</span><div><div class="pickup-city">Medina</div><div class="pickup-time">~1:00 PM ET</div></div></div>
+            <div class="pickup-icon">🏘️</div>
+            <div class="pickup-city">Medina</div>
+            <div class="pickup-time">~1:00 PM ET</div>
             <div class="pickup-addr">4390 Lakeview Glen Dr<br/>Medina, OH 44256</div>
           </div>
         </label>
         <label class="pickup-card" for="pickup-marblehead">
           <input type="radio" name="pickup" id="pickup-marblehead" value="marblehead" onchange="onPickupChange()"/>
           <div class="pickup-card-inner">
-            <div class="pickup-top"><span class="pickup-icon">⚓</span><div><div class="pickup-city">Marblehead</div><div class="pickup-time">~6:00 PM ET</div></div></div>
+            <div class="pickup-icon">⚓</div>
+            <div class="pickup-city">Marblehead</div>
+            <div class="pickup-time">~6:00 PM ET</div>
             <div class="pickup-addr">2000 Dorchester Dr<br/>Marblehead, OH 43440</div>
           </div>
         </label>
         <label class="pickup-card" for="pickup-ridgewood">
           <input type="radio" name="pickup" id="pickup-ridgewood" value="ridgewood" onchange="onPickupChange()"/>
           <div class="pickup-card-inner">
-            <div class="pickup-top"><span class="pickup-icon">🐴</span><div><div class="pickup-city">Ridgewood Stables</div><div class="pickup-time">~9:00 AM ET</div></div></div>
+            <div class="pickup-icon">🐴</div>
+            <div class="pickup-city">Ridgewood Stables</div>
+            <div class="pickup-time">~9:00 AM ET</div>
             <div class="pickup-addr">2250 Ridgewood Rd<br/>Medina, OH 44256</div>
           </div>
         </label>
