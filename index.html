@@ -421,7 +421,7 @@ var ADMIN_PASSWORD = 'lillybakes2024';
 var SHEET_ID       = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
 var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&sheet=Sheet1';
 
-var GOOGLE_FORM_URL = 'https://docs.google.com/forms/u/0/d/e/1FAIpQLScR_h63pKiRDuEBiUUn_lLZwVOqyTZr1R4KXQLdehxii-_9Jw/formResponse';
+// Orders now submitted directly to Apps Script Web App (see submitOrder function)
 
 var DEFAULT_SPECIAL = {
   name: 'Pizza Loaf',
@@ -651,25 +651,32 @@ function submitOrder() {
     '<br/><br/><strong>Total: $' + total + '</strong><br/><br/>' +
     payNote + '<br/><br/>Lilly can\'t wait to bake for you! 🍞';
 
-  // Send to Google Forms — individual qty columns + all other fields
-  var fd = new FormData();
-  fd.append('entry.477621901',  name);
-  fd.append('entry.1188160679', phone);
-  fd.append('entry.476074871',  email);
-  fd.append('entry.15440025',   address);
-  fd.append('entry.639923744',  city);
-  fd.append('entry.954004769',  zip);
-  fd.append('entry.840313283',  String(parseInt(document.getElementById('plain').value   || 0)));
-  fd.append('entry.754841378',  String(parseInt(document.getElementById('jalapeno').value|| 0)));
-  fd.append('entry.735940338',  String(parseInt(document.getElementById('cinnamon').value|| 0)));
-  fd.append('entry.1878685418', String(parseInt((document.getElementById('pizza') || {value:'0'}).value || 0)));
-  fd.append('entry.1295480790', String(parseInt(document.getElementById('cookies').value || 0)));
-  fd.append('entry.1001354712', '$' + total);
-  fd.append('entry.1649470580', (pickup === 'medina') ? 'Medina' : (pickup === 'marblehead') ? 'Marblehead' : 'Ridgewood Stables');
-  fd.append('entry.4073665',    (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup');
-  fd.append('entry.1753453129', orderNum);
-  fd.append('entry.251989107',  document.getElementById('notes').value || '');
-  fetch(GOOGLE_FORM_URL, { method:'POST', mode:'no-cors', body:fd }).catch(function(){});
+  // Submit directly to Apps Script Web App — writes to Sheet, sends email, updates bake summary
+  var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwJAwk6O_m3qooVLGvbOZS_datDZqP9VWQ4-YInx1Xs-EjfxGFIBXqbWoedrR5RC6hv/exec';
+  var payload = {
+    name:      name,
+    phone:     phone,
+    email:     email,
+    address:   address,
+    city:      city,
+    zip:       zip,
+    plain:     parseInt(document.getElementById('plain').value    || 0),
+    jalapeno:  parseInt(document.getElementById('jalapeno').value || 0),
+    cinnamon:  parseInt(document.getElementById('cinnamon').value || 0),
+    special:   parseInt((document.getElementById('pizza') || {value:'0'}).value || 0),
+    cookies:   parseInt(document.getElementById('cookies').value  || 0),
+    total:     '$' + total,
+    pickup:    (pickup === 'medina') ? 'Medina' : (pickup === 'marblehead') ? 'Marblehead' : 'Ridgewood Stables',
+    payment:   (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup',
+    orderNum:  orderNum,
+    notes:     document.getElementById('notes').value || ''
+  };
+  fetch(WEB_APP_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(function(err) { console.log('Submission error:', err); });
 
   // Show success
   document.querySelectorAll('.card').forEach(function(c){ c.style.display='none'; });
