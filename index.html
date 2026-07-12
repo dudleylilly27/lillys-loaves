@@ -392,12 +392,11 @@ var DEFAULT_SPECIAL = {
 var PRODUCTS = {};
 
 function loadMenuFromSheet() {
-  var url = MENU_URL + '&nocache=' + Date.now();
-  fetch(url, { mode: 'cors', redirect: 'follow' })
+  var url = 'https://corsproxy.io/?' + encodeURIComponent(MENU_URL + '&nocache=' + Date.now());
+  fetch(url)
     .then(function(r) { return r.text(); })
     .then(function(csv) {
       var lines = csv.trim().split('\n');
-      // Skip header row (row 0)
       var menuItems = [];
       for (var i = 1; i < lines.length; i++) {
         var line = lines[i].replace(/\r/g, '');
@@ -464,8 +463,8 @@ function renderDefaultMenu() {
 // Uses the public gviz/tq endpoint — no API key needed
 // ─────────────────────────────────────────────
 function loadSpecialFromSheet() {
-  var url = SHEET_URL + '&nocache=' + Date.now();
-  fetch(url, { mode: 'cors', redirect: 'follow' })
+  var url = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_URL + '&nocache=' + Date.now());
+  fetch(url)
     .then(function(r) { return r.text(); })
     .then(function(csv) {
       var sp = {};
@@ -484,7 +483,7 @@ function loadSpecialFromSheet() {
       renderSpecial(sp);
     })
     .catch(function(err) {
-      console.log('Sheet fetch failed, using default:', err);
+      console.log('Special fetch failed, using default:', err);
       renderSpecial(DEFAULT_SPECIAL);
     });
 }
