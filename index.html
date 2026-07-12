@@ -373,7 +373,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 // ─────────────────────────────────────────────
 var ADMIN_PASSWORD = 'lillybakes2024';
 var SHEET_ID  = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
-var MENU_URL  = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=0';
+var MENU_URL  = 'https://opensheet.elk.sh/' + SHEET_ID + '/Menu';
 
 // Orders now submitted directly to Apps Script Web App (see submitOrder function)
 
@@ -405,9 +405,9 @@ function renderMenuItems(items) {
         '</div>' +
         '<div class="product-price">$' + item.price + ' each</div>' +
         '<div class="qty-wrap">' +
-          '<button type="button" class="qty-btn" onclick="changeQty('' + item.id + '',-1)">−</button>' +
+          '<button type="button" class="qty-btn" onclick="changeQty(&quot;' + item.id + '&quot;,-1)">−</button>' +
           '<input class="qty-input" type="number" id="' + item.id + '" value="0" min="0" max="10" readonly/>' +
-          '<button type="button" class="qty-btn" onclick="changeQty('' + item.id + '',1)">+</button>' +
+          '<button type="button" class="qty-btn" onclick="changeQty(&quot;' + item.id + '&quot;,1)">+</button>' +
         '</div>' +
       '</div>';
   });
@@ -436,34 +436,25 @@ function loadMenu() {
     });
 }
 
-function parseMenuCSV(csv) {
+function parseMenuCSV(json) {
+  // opensheet.elk.sh returns a JSON array of objects
   var items = [];
-  var lines = csv.trim().split('\n');
-  for (var i = 1; i < lines.length; i++) {
-    var line = lines[i].replace(/\r/g, '');
-    // Handle CSV with commas inside quoted fields
-    var parts = [];
-    var inQuote = false;
-    var cur = '';
-    for (var c = 0; c < line.length; c++) {
-      var ch = line[c];
-      if (ch === '"') { inQuote = !inQuote; }
-      else if (ch === ',' && !inQuote) { parts.push(cur); cur = ''; }
-      else { cur += ch; }
-    }
-    parts.push(cur);
-    if (parts.length >= 7) {
-      var id        = parts[0].trim();
-      var name      = parts[1].trim();
-      var desc      = parts[2].trim();
-      var price     = parseFloat(parts[3].trim()) || 0;
-      var emoji     = parts[4].trim();
-      var available = parts[5].trim().toLowerCase();
-      var type      = parts[6].trim().toLowerCase();
+  try {
+    var rows = JSON.parse(json);
+    rows.forEach(function(row) {
+      var id        = String(row.id        || '').trim();
+      var name      = String(row.name      || '').trim();
+      var desc      = String(row.desc      || '').trim();
+      var price     = parseFloat(row.price)  || 0;
+      var emoji     = String(row.emoji     || '🍞').trim();
+      var available = String(row.available || 'yes').trim().toLowerCase();
+      var type      = String(row.type      || 'standard').trim().toLowerCase();
       if (id && name && available !== 'no') {
         items.push({ id:id, name:name, desc:desc, price:price, emoji:emoji, type:type });
       }
-    }
+    });
+  } catch(e) {
+    console.log('JSON parse error:', e);
   }
   return items;
 }
