@@ -373,6 +373,8 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 // ─────────────────────────────────────────────────────────────
 var ADMIN_PASSWORD  = 'lillybakes2024';
 var WEB_APP_URL     = 'https://script.google.com/macros/s/AKfycbwJAwk6O_m3qooVLGvbOZS_datDZqP9VWQ4-YInx1Xs-EjfxGFIBXqbWoedrR5RC6hv/exec';
+var SHEET_ID        = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
+var MENU_URL        = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=0';
 
 // ─────────────────────────────────────────────────────────────
 // DEFAULT MENU — fallback if Web App unreachable
@@ -391,17 +393,57 @@ var PRODUCTS = {};
 // LOAD & RENDER MENU FROM LOCALSTORAGE
 // ─────────────────────────────────────────────────────────────
 function loadMenu() {
-  var url = WEB_APP_URL + '?action=getMenu&nocache=' + Date.now();
-  fetch(url)
-    .then(function(r) { return r.json(); })
-    .then(function(items) {
-      if (!items || items.length === 0) { renderAllFromItems(DEFAULT_MENU); return; }
-      renderAllFromItems(items);
+  fetch(MENU_URL + '&nocache=' + Date.now(), { mode:'cors', redirect:'follow' })
+    .then(function(r) { return r.text(); })
+    .then(function(csv) {
+      var items = parseMenuCSV(csv);
+      if (!items || items.length === 0) {
+        renderAllFromItems(DEFAULT_MENU);
+      } else {
+        renderAllFromItems(items);
+      }
     })
     .catch(function(err) {
       console.log('Menu fetch failed, using defaults:', err);
       renderAllFromItems(DEFAULT_MENU);
     });
+}
+
+function parseMenuCSV(csv) {
+  var items = [];
+  var lines = csv.trim().split('\n');
+  // Row 0 is headers: id,name,desc,price,emoji,available,type
+  for (var i = 1; i < lines.length; i++) {
+    var parts = splitCSVLine(lines[i]);
+    if (parts.length >= 7) {
+      var id        = parts[0].trim();
+      var name      = parts[1].trim();
+      var desc      = parts[2].trim();
+      var price     = parseFloat(parts[3].trim()) || 0;
+      var emoji     = parts[4].trim();
+      var available = parts[5].trim().toLowerCase();
+      var type      = parts[6].trim().toLowerCase();
+      if (id && name && available !== 'no') {
+        items.push({ id:id, name:name, desc:desc, price:price, emoji:emoji, available:available, type:type });
+      }
+    }
+  }
+  return items;
+}
+
+function splitCSVLine(line) {
+  var parts = [];
+  var cur = '';
+  var inQuote = false;
+  line = line.replace(/\r/g, '');
+  for (var c = 0; c < line.length; c++) {
+    var ch = line[c];
+    if (ch === '"') { inQuote = !inQuote; }
+    else if (ch === ',' && !inQuote) { parts.push(cur); cur = ''; }
+    else { cur += ch; }
+  }
+  parts.push(cur);
+  return parts;
 }
 
 function renderAllFromItems(items) {
@@ -707,13 +749,13 @@ function checkAdminPw() {
 }
 
 function populateAdminForm() {
-  // Fetch current menu from Sheet to pre-fill the form
-  fetch(WEB_APP_URL + '?action=getMenu&nocache=' + Date.now())
-    .then(function(r) { return r.json(); })
-    .then(function(menu) {
-      var sp = DEFAULT_MENU[4];
-      for (var i = 0; i < menu.length; i++) {
-        if (menu[i].type === 'special') { sp = menu[i]; break; }
+  var sp = DEFAULT_MENU[4];
+  fetch(MENU_URL + '&nocache=' + Date.now(), { mode:'cors', redirect:'follow' })
+    .then(function(r) { return r.text(); })
+    .then(function(csv) {
+      var items = parseMenuCSV(csv);
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].type === 'special') { sp = items[i]; break; }
       }
       document.getElementById('sp-name').value      = sp.name;
       document.getElementById('sp-desc').value      = sp.desc;
@@ -723,7 +765,6 @@ function populateAdminForm() {
       updateAdminPreview();
     })
     .catch(function() {
-      var sp = DEFAULT_MENU[4];
       document.getElementById('sp-name').value      = sp.name;
       document.getElementById('sp-desc').value      = sp.desc;
       document.getElementById('sp-price').value     = sp.price;
@@ -796,16 +837,14 @@ function saveSpecial() {
   msg.style.display = 'block';
 
   fetch(WEB_APP_URL + params)
-    .then(function(r) { return r.json(); })
-    .then(function(res) {
-      // Re-render with updated menu
-      PRODUCTS = {};
-      renderAllFromItems(menu);
+    .then(function() {
+      // Reload menu to confirm update
+      loadMenu();
       msg.innerHTML = '✅ Weekly special updated for all devices!';
       setTimeout(function() { msg.style.display = 'none'; closeAdmin(); }, 2500);
     })
     .catch(function(err) {
-      msg.innerHTML = '⚠️ Could not save to sheet. Try again.';
+      msg.innerHTML = '⚠️ Could not save. Please update the Google Sheet directly.';
       console.log('Save error:', err);
     });
 }
