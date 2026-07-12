@@ -76,7 +76,7 @@ textarea:focus{border-color:var(--crust);box-shadow:0 0 0 3px rgba(200,129,58,.1
 footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 .admin-trigger{display:inline-block;margin-top:6px;font-size:.72rem;color:var(--border);cursor:pointer;transition:color .2s;user-select:none}
 .admin-trigger:hover{color:var(--muted)}
-.pickup-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:8px}
+.pickup-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:8px}
 .pickup-card{cursor:pointer;display:flex}
 .pickup-card input[type="radio"]{display:none}
 .pickup-card-inner{
@@ -126,7 +126,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 .admin-divider{border:none;border-top:1px solid var(--border);margin:18px 0}
 .admin-preview-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px}
 .admin-preview-box{background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:.88rem;color:var(--dark);line-height:1.5}
-@media(max-width:520px){.pickup-options{grid-template-columns:1fr 1fr}}@media(max-width:480px){.two-col,.pay-toggle,.admin-row{grid-template-columns:1fr}.pickup-options{grid-template-columns:1fr 1fr}.form-body{padding:20px}}
+@media(max-width:480px){.two-col,.pay-toggle,.admin-row{grid-template-columns:1fr}.pickup-options{grid-template-columns:1fr 1fr}.form-body{padding:20px}}
 </style>
 </head>
 <body>
@@ -185,49 +185,11 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
   </div>
 </div>
 
-<!-- STANDARD LOAVES -->
-<div class="card">
-  <div class="section-head">🍞 Standard Loaves <span style="font-size:.8rem;color:var(--muted);font-family:'Lato',sans-serif;font-weight:400;margin-left:6px;">— Order as many as you'd like!</span></div>
-  <div class="form-body">
-    <div class="product-row">
-      <div class="product-emoji">🤍</div>
-      <div class="product-info">
-        <div class="product-name">Plain Sourdough</div>
-        <div class="product-desc">Classic slow-fermented loaf — crispy crust, open crumb</div>
-      </div>
-      <div class="product-price">$11 each</div>
-      <div class="qty-wrap">
-        <button type="button" class="qty-btn" onclick="changeQty('plain',-1)">−</button>
-        <input class="qty-input" type="number" id="plain" value="0" min="0" max="10" readonly/>
-        <button type="button" class="qty-btn" onclick="changeQty('plain',1)">+</button>
-      </div>
-    </div>
-    <div class="product-row">
-      <div class="product-emoji">🌶️</div>
-      <div class="product-info">
-        <div class="product-name">Jalapeño Cheddar</div>
-        <div class="product-desc">Loaded with sharp cheddar & roasted jalapeños</div>
-      </div>
-      <div class="product-price">$15 each</div>
-      <div class="qty-wrap">
-        <button type="button" class="qty-btn" onclick="changeQty('jalapeno',-1)">−</button>
-        <input class="qty-input" type="number" id="jalapeno" value="0" min="0" max="10" readonly/>
-        <button type="button" class="qty-btn" onclick="changeQty('jalapeno',1)">+</button>
-      </div>
-    </div>
-    <div class="product-row">
-      <div class="product-emoji">🍂</div>
-      <div class="product-info">
-        <div class="product-name">Cinnamon Sugar</div>
-        <div class="product-desc">Swirled with cinnamon & sugar — perfect toasted</div>
-      </div>
-      <div class="product-price">$15 each</div>
-      <div class="qty-wrap">
-        <button type="button" class="qty-btn" onclick="changeQty('cinnamon',-1)">−</button>
-        <input class="qty-input" type="number" id="cinnamon" value="0" min="0" max="10" readonly/>
-        <button type="button" class="qty-btn" onclick="changeQty('cinnamon',1)">+</button>
-      </div>
-    </div>
+<!-- STANDARD LOAVES + COOKIES — rendered dynamically from Google Sheet -->
+<div class="card" id="menu-card">
+  <div class="section-head">🍞 Loaves & Cookies <span style="font-size:.8rem;color:var(--muted);font-family:'Lato',sans-serif;font-weight:400;margin-left:6px;">— Order as many as you'd like!</span></div>
+  <div class="form-body" id="menu-body">
+    <div class="special-loading">Loading menu...</div>
   </div>
 </div>
 
@@ -239,25 +201,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
   </div>
 </div>
 
-<!-- COOKIES -->
-<div class="card">
-  <div class="section-head">🍪 Cookies</div>
-  <div class="form-body">
-    <div class="product-row" style="border-bottom:none;">
-      <div class="product-emoji">🍫</div>
-      <div class="product-info">
-        <div class="product-name">Sourdough Chocolate Chip Cookies</div>
-        <div class="product-desc">½ dozen per order — chewy, tangy, irresistible</div>
-      </div>
-      <div class="product-price">$10 each</div>
-      <div class="qty-wrap">
-        <button type="button" class="qty-btn" onclick="changeQty('cookies',-1)">−</button>
-        <input class="qty-input" type="number" id="cookies" value="0" min="0" max="10" readonly/>
-        <button type="button" class="qty-btn" onclick="changeQty('cookies',1)">+</button>
-      </div>
-    </div>
-  </div>
-</div>
+
 
 <!-- ORDER SUMMARY -->
 <div class="card" id="summary-section">
@@ -298,6 +242,15 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
             <div class="pickup-city">Ridgewood Stables</div>
             <div class="pickup-time">~9:00 AM ET</div>
             <div class="pickup-addr">2250 Ridgewood Rd<br/>Medina, OH 44256</div>
+          </div>
+        </label>
+        <label class="pickup-card" for="pickup-milano">
+          <input type="radio" name="pickup" id="pickup-milano" value="milano" onchange="onPickupChange()"/>
+          <div class="pickup-card-inner">
+            <div class="pickup-icon">🏛️</div>
+            <div class="pickup-city">Milano Monuments</div>
+            <div class="pickup-time">~1:00 PM ET</div>
+            <div class="pickup-addr">14600 Brookpark Rd<br/>Cleveland, OH 44135</div>
           </div>
         </label>
       </div>
@@ -420,7 +373,8 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 // ─────────────────────────────────────────────
 var ADMIN_PASSWORD = 'lillybakes2024';
 var SHEET_ID       = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
-var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&sheet=Sheet1';
+var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&sheet=Weekly%20Special';
+var MENU_URL       = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&sheet=Menu';
 
 // Orders now submitted directly to Apps Script Web App (see submitOrder function)
 
@@ -433,14 +387,77 @@ var DEFAULT_SPECIAL = {
 };
 
 // ─────────────────────────────────────────────
-// PRODUCTS — pizza added dynamically
+// PRODUCTS — loaded dynamically from Google Sheet Menu tab
 // ─────────────────────────────────────────────
-var PRODUCTS = {
-  plain:    { name: 'Plain Sourdough',            price: 11 },
-  jalapeno: { name: 'Jalapeno Cheddar',           price: 15 },
-  cinnamon: { name: 'Cinnamon Sugar',             price: 15 },
-  cookies:  { name: 'Choc Chip Cookies (1/2 doz)',price: 10 }
-};
+var PRODUCTS = {};
+
+function loadMenuFromSheet() {
+  var url = MENU_URL + '&nocache=' + Date.now();
+  fetch(url, { mode: 'cors', redirect: 'follow' })
+    .then(function(r) { return r.text(); })
+    .then(function(csv) {
+      var lines = csv.trim().split('\n');
+      // Skip header row (row 0)
+      var menuItems = [];
+      for (var i = 1; i < lines.length; i++) {
+        var line = lines[i].replace(/\r/g, '');
+        var parts = line.split(',');
+        if (parts.length >= 6) {
+          var id        = parts[0].replace(/^"|"$/g,'').trim();
+          var name      = parts[1].replace(/^"|"$/g,'').trim();
+          var desc      = parts.slice(2, parts.length-3).join(',').replace(/^"|"$/g,'').trim();
+          var price     = parseFloat(parts[parts.length-3].replace(/^"|"$/g,'').trim()) || 0;
+          var emoji     = parts[parts.length-2].replace(/^"|"$/g,'').trim();
+          var available = parts[parts.length-1].replace(/^"|"$/g,'').trim().toLowerCase();
+          if (id && name && available !== 'no') {
+            menuItems.push({ id: id, name: name, desc: desc, price: price, emoji: emoji });
+          }
+        }
+      }
+      renderMenu(menuItems);
+    })
+    .catch(function(err) {
+      console.log('Menu fetch failed, using defaults:', err);
+      renderDefaultMenu();
+    });
+}
+
+function renderMenu(items) {
+  var body = document.getElementById('menu-body');
+  if (!body) return;
+  if (!items || items.length === 0) { renderDefaultMenu(); return; }
+
+  var html = '';
+  items.forEach(function(item, idx) {
+    PRODUCTS[item.id] = { name: item.name, price: item.price };
+    var last = (idx === items.length - 1) ? 'style="border-bottom:none;"' : '';
+    html +=
+      '<div class="product-row" ' + last + '>' +
+        '<div class="product-emoji">' + (item.emoji || '🍞') + '</div>' +
+        '<div class="product-info">' +
+          '<div class="product-name">' + item.name + '</div>' +
+          '<div class="product-desc">' + item.desc + '</div>' +
+        '</div>' +
+        '<div class="product-price">$' + item.price + ' each</div>' +
+        '<div class="qty-wrap">' +
+          '<button type="button" class="qty-btn" onclick="changeQty('' + item.id + '',-1)">−</button>' +
+          '<input class="qty-input" type="number" id="' + item.id + '" value="0" min="0" max="10" readonly/>' +
+          '<button type="button" class="qty-btn" onclick="changeQty('' + item.id + '',1)">+</button>' +
+        '</div>' +
+      '</div>';
+  });
+  body.innerHTML = html;
+}
+
+function renderDefaultMenu() {
+  var defaults = [
+    { id:'plain',    name:'Plain Sourdough',            desc:'Classic slow-fermented loaf — crispy crust, open crumb', price:11, emoji:'🤍' },
+    { id:'jalapeno', name:'Jalapeño Cheddar',           desc:'Loaded with sharp cheddar & roasted jalapeños',          price:15, emoji:'🌶️' },
+    { id:'cinnamon', name:'Cinnamon Sugar',             desc:'Swirled with cinnamon & sugar — perfect toasted',        price:15, emoji:'🍂' },
+    { id:'cookies',  name:'Sourdough Choc Chip Cookies',desc:'½ dozen per order — chewy, tangy, irresistible',         price:10, emoji:'🍫' }
+  ];
+  renderMenu(defaults);
+}
 
 // ─────────────────────────────────────────────
 // LOAD WEEKLY SPECIAL FROM GOOGLE SHEET
@@ -667,7 +684,7 @@ function submitOrder() {
     special:   parseInt((document.getElementById('pizza') || {value:'0'}).value || 0),
     cookies:   parseInt(document.getElementById('cookies').value  || 0),
     total:     '$' + total,
-    pickup:    (pickup === 'medina') ? 'Medina' : (pickup === 'marblehead') ? 'Marblehead' : 'Ridgewood Stables',
+    pickup:    (pickup === 'medina') ? 'Medina' : (pickup === 'marblehead') ? 'Marblehead' : (pickup === 'ridgewood') ? 'Ridgewood Stables' : 'Milano Monuments',
     payment:   (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup',
     orderNum:  orderNum,
     notes:     document.getElementById('notes').value || ''
@@ -796,6 +813,7 @@ document.getElementById('admin-overlay').addEventListener('click', function(e){
 // ─────────────────────────────────────────────
 window._currentSpecial = DEFAULT_SPECIAL;
 loadSpecialFromSheet();
+loadMenuFromSheet();
 
 </script>
 </body>
