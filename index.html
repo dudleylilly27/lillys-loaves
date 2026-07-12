@@ -393,25 +393,16 @@ var PRODUCTS = {};
 // LOAD & RENDER MENU FROM LOCALSTORAGE
 // ─────────────────────────────────────────────────────────────
 function loadMenu() {
-  // Use JSONP via Apps Script Web App — bypasses CORS completely
-  window._menuJSONP = function(items) {
-    try {
+  fetch(WEB_APP_URL + '?action=getMenu', { redirect: 'follow' })
+    .then(function(r) { return r.json(); })
+    .then(function(items) {
       if (!items || items.length === 0) { renderAllFromItems(DEFAULT_MENU); return; }
       renderAllFromItems(items);
-    } catch(e) {
+    })
+    .catch(function(err) {
+      console.log('loadMenu error:', err);
       renderAllFromItems(DEFAULT_MENU);
-    }
-  };
-
-  var timeout = setTimeout(function() {
-    renderAllFromItems(DEFAULT_MENU);
-  }, 8000);
-
-  var script = document.createElement('script');
-  script.src = WEB_APP_URL + '?action=getMenu&callback=_menuJSONP';
-  script.onload = function() { clearTimeout(timeout); };
-  script.onerror = function() { clearTimeout(timeout); renderAllFromItems(DEFAULT_MENU); };
-  document.head.appendChild(script);
+    });
 }
 
 function parseMenuCSV(csv) {
