@@ -471,65 +471,107 @@ function splitCSVLine(line) {
   return parts;
 }
 
+function makeRow(item, isLast, isSpecial) {
+  var row = document.createElement('div');
+  row.className = 'product-row';
+  if (isLast) row.style.borderBottom = 'none';
+
+  var nameDiv = document.createElement('div');
+  nameDiv.className = 'product-name';
+  nameDiv.textContent = item.name;
+  if (isSpecial) {
+    var tag = document.createElement('span');
+    tag.className = 'specialty-tag';
+    tag.textContent = 'This Week';
+    nameDiv.appendChild(document.createTextNode(' '));
+    nameDiv.appendChild(tag);
+  }
+
+  var descDiv = document.createElement('div');
+  descDiv.className = 'product-desc';
+  descDiv.textContent = item.desc;
+
+  var infoDiv = document.createElement('div');
+  infoDiv.className = 'product-info';
+  infoDiv.appendChild(nameDiv);
+  infoDiv.appendChild(descDiv);
+
+  var emojiDiv = document.createElement('div');
+  emojiDiv.className = 'product-emoji';
+  emojiDiv.textContent = item.emoji || '🍞';
+
+  var priceDiv = document.createElement('div');
+  priceDiv.className = 'product-price';
+  priceDiv.textContent = '$' + item.price + ' each';
+
+  var minusBtn = document.createElement('button');
+  minusBtn.type = 'button';
+  minusBtn.className = 'qty-btn';
+  minusBtn.textContent = '−';
+  minusBtn.addEventListener('click', (function(id) {
+    return function() { changeQty(id, -1); };
+  })(item.id));
+
+  var input = document.createElement('input');
+  input.className = 'qty-input';
+  input.type = 'number';
+  input.id = item.id;
+  input.value = 0;
+  input.min = 0;
+  input.max = 10;
+  input.readOnly = true;
+
+  var plusBtn = document.createElement('button');
+  plusBtn.type = 'button';
+  plusBtn.className = 'qty-btn';
+  plusBtn.textContent = '+';
+  plusBtn.addEventListener('click', (function(id) {
+    return function() { changeQty(id, 1); };
+  })(item.id));
+
+  var qtyWrap = document.createElement('div');
+  qtyWrap.className = 'qty-wrap';
+  qtyWrap.appendChild(minusBtn);
+  qtyWrap.appendChild(input);
+  qtyWrap.appendChild(plusBtn);
+
+  row.appendChild(emojiDiv);
+  row.appendChild(infoDiv);
+  row.appendChild(priceDiv);
+  row.appendChild(qtyWrap);
+  return row;
+}
+
 function renderAllFromItems(items) {
   var standard = items.filter(function(i) { return i.type === 'standard' && i.available !== 'no'; });
   var special  = items.filter(function(i) { return i.type === 'special'; });
 
-  // Render standard items
   var body = document.getElementById('menu-body');
   if (body) {
+    body.innerHTML = '';
     if (standard.length === 0) {
       body.innerHTML = '<p style="color:var(--muted);font-size:.9rem;padding:8px 0;">No items available this week.</p>';
     } else {
-      var html = '';
       standard.forEach(function(item, idx) {
         PRODUCTS[item.id] = { name: item.name, price: item.price };
-        var last = (idx === standard.length - 1) ? ' style="border-bottom:none;"' : '';
-        html +=
-          '<div class="product-row"' + last + '>' +
-            '<div class="product-emoji">' + (item.emoji || '🍞') + '</div>' +
-            '<div class="product-info">' +
-              '<div class="product-name">' + item.name + '</div>' +
-              '<div class="product-desc">' + item.desc + '</div>' +
-            '</div>' +
-            '<div class="product-price">$' + item.price + ' each</div>' +
-            '<div class="qty-wrap">' +
-              '<button type="button" class="qty-btn" onclick="changeQty('' + item.id + '',-1)">−</button>' +
-              '<input class="qty-input" type="number" id="' + item.id + '" value="0" min="0" max="10" readonly/>' +
-              '<button type="button" class="qty-btn" onclick="changeQty('' + item.id + '',1)">+</button>' +
-            '</div>' +
-          '</div>';
+        body.appendChild(makeRow(item, idx === standard.length - 1, false));
       });
-      body.innerHTML = html;
     }
   }
 
-  // Render weekly special
   var spBody = document.getElementById('special-body');
-  var spCard = document.getElementById('special-card');
   if (spBody) {
+    spBody.innerHTML = '';
     if (special.length === 0 || special[0].available === 'no') {
       spBody.innerHTML = '<div class="special-unavailable">No special this week — check back Saturday! 🍞</div>';
     } else {
       var sp = special[0];
       PRODUCTS[sp.id] = { name: sp.name + ' (Weekly Special)', price: sp.price };
-      spBody.innerHTML =
-        '<div class="product-row" style="border-bottom:none;">' +
-          '<div class="product-emoji">' + (sp.emoji || '⭐') + '</div>' +
-          '<div class="product-info">' +
-            '<div class="product-name">' + sp.name + ' <span class="specialty-tag">This Week</span></div>' +
-            '<div class="product-desc">' + sp.desc + '</div>' +
-          '</div>' +
-          '<div class="product-price">$' + sp.price + ' each</div>' +
-          '<div class="qty-wrap">' +
-            '<button type="button" class="qty-btn" onclick="changeQty('' + sp.id + '',-1)">−</button>' +
-            '<input class="qty-input" type="number" id="' + sp.id + '" value="0" min="0" max="10" readonly/>' +
-            '<button type="button" class="qty-btn" onclick="changeQty('' + sp.id + '',1)">+</button>' +
-          '</div>' +
-        '</div>';
+      spBody.appendChild(makeRow(sp, true, true));
     }
   }
 }
+
 
 // ─────────────────────────────────────────────────────────────
 // QTY + SUMMARY
