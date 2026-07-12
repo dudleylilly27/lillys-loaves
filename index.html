@@ -393,8 +393,13 @@ var PRODUCTS = {};
 // LOAD & RENDER MENU FROM LOCALSTORAGE
 // ─────────────────────────────────────────────────────────────
 function loadMenu() {
-  // Use JSONP via script tag — avoids CORS entirely
-  window._menuCallback = function(data) {
+  // Intercept google.visualization.Query.setResponse which is what
+  // Google actually calls when no custom responseHandler is specified
+  if (!window.google) window.google = {};
+  if (!window.google.visualization) window.google.visualization = {};
+  if (!window.google.visualization.Query) window.google.visualization.Query = {};
+
+  window.google.visualization.Query.setResponse = function(data) {
     try {
       var rows = data.table.rows;
       var cols = data.table.cols;
@@ -425,7 +430,8 @@ function loadMenu() {
 
   var script = document.createElement('script');
   script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-    '/gviz/tq?tqx=out:json;responseHandler:_menuCallback&gid=0';
+    '/gviz/tq?tqx=out:json&gid=0';
+  script.onload = function() { clearTimeout(timeout); };
   script.onerror = function() {
     clearTimeout(timeout);
     renderAllFromItems(DEFAULT_MENU);
