@@ -374,7 +374,7 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 var ADMIN_PASSWORD  = 'lillybakes2024';
 var WEB_APP_URL     = 'https://script.google.com/macros/s/AKfycbwJAwk6O_m3qooVLGvbOZS_datDZqP9VWQ4-YInx1Xs-EjfxGFIBXqbWoedrR5RC6hv/exec';
 var SHEET_ID        = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
-var MENU_URL        = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=0';
+// Menu loaded via JSONP from gid=0 (Menu tab)
 
 // ─────────────────────────────────────────────────────────────
 // DEFAULT MENU — fallback if Web App unreachable
@@ -393,20 +393,45 @@ var PRODUCTS = {};
 // LOAD & RENDER MENU FROM LOCALSTORAGE
 // ─────────────────────────────────────────────────────────────
 function loadMenu() {
-  fetch(MENU_URL + '&nocache=' + Date.now(), { mode:'cors', redirect:'follow' })
-    .then(function(r) { return r.text(); })
-    .then(function(csv) {
-      var items = parseMenuCSV(csv);
-      if (!items || items.length === 0) {
-        renderAllFromItems(DEFAULT_MENU);
-      } else {
-        renderAllFromItems(items);
-      }
-    })
-    .catch(function(err) {
-      console.log('Menu fetch failed, using defaults:', err);
+  // Use JSONP via script tag — avoids CORS entirely
+  window._menuCallback = function(data) {
+    try {
+      var rows = data.table.rows;
+      var cols = data.table.cols;
+      var items = [];
+      rows.forEach(function(row) {
+        var item = {};
+        cols.forEach(function(col, i) {
+          item[col.label.toLowerCase()] = row.c[i] ? String(row.c[i].v || '') : '';
+        });
+        if (item.id && item.name && item.available !== 'no') {
+          item.price = parseFloat(item.price) || 0;
+          items.push(item);
+        }
+      });
+      if (items.length === 0) { renderAllFromItems(DEFAULT_MENU); return; }
+      renderAllFromItems(items);
+    } catch(e) {
+      console.log('Menu parse error:', e);
       renderAllFromItems(DEFAULT_MENU);
-    });
+    }
+  };
+
+  // Timeout fallback
+  var timeout = setTimeout(function() {
+    console.log('Menu load timed out, using defaults');
+    renderAllFromItems(DEFAULT_MENU);
+  }, 6000);
+
+  var script = document.createElement('script');
+  script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+    '/gviz/tq?tqx=out:json&tq=select%20*&gid=0&callback=_menuCallback&nocache=' + Date.now();
+  script.onerror = function() {
+    clearTimeout(timeout);
+    renderAllFromItems(DEFAULT_MENU);
+  };
+  script.onload = function() { clearTimeout(timeout); };
+  document.head.appendChild(script);
 }
 
 function parseMenuCSV(csv) {
@@ -750,28 +775,38 @@ function checkAdminPw() {
 
 function populateAdminForm() {
   var sp = DEFAULT_MENU[4];
-  fetch(MENU_URL + '&nocache=' + Date.now(), { mode:'cors', redirect:'follow' })
-    .then(function(r) { return r.text(); })
-    .then(function(csv) {
-      var items = parseMenuCSV(csv);
-      for (var i = 0; i < items.length; i++) {
-        if (items[i].type === 'special') { sp = items[i]; break; }
-      }
-      document.getElementById('sp-name').value      = sp.name;
-      document.getElementById('sp-desc').value      = sp.desc;
-      document.getElementById('sp-price').value     = sp.price;
-      document.getElementById('sp-emoji').value     = sp.emoji || '⭐';
-      document.getElementById('sp-available').value = sp.available || 'yes';
-      updateAdminPreview();
-    })
-    .catch(function() {
-      document.getElementById('sp-name').value      = sp.name;
-      document.getElementById('sp-desc').value      = sp.desc;
-      document.getElementById('sp-price').value     = sp.price;
-      document.getElementById('sp-emoji').value     = sp.emoji || '⭐';
-      document.getElementById('sp-available').value = sp.available || 'yes';
-      updateAdminPreview();
-    });
+  // Use JSONP to load current special
+  window._adminMenuCallback = function(data) {
+    try {
+      var rows = data.table.rows;
+      var cols = data.table.cols;
+      rows.forEach(function(row) {
+        var item = {};
+        cols.forEach(function(col, i) {
+          item[col.label.toLowerCase()] = row.c[i] ? String(row.c[i].v || '') : '';
+        });
+        if (item.type === 'special') { sp = item; sp.price = parseFloat(sp.price) || 15; }
+      });
+    } catch(e) {}
+    document.getElementById('sp-name').value      = sp.name      || '';
+    document.getElementById('sp-desc').value      = sp.desc      || '';
+    document.getElementById('sp-price').value     = sp.price     || 15;
+    document.getElementById('sp-emoji').value     = sp.emoji     || '⭐';
+    document.getElementById('sp-available').value = sp.available || 'yes';
+    updateAdminPreview();
+  };
+  var s = document.createElement('script');
+  s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+    '/gviz/tq?tqx=out:json&tq=select%20*&gid=0&callback=_adminMenuCallback&nocache=' + Date.now();
+  s.onerror = function() {
+    document.getElementById('sp-name').value      = sp.name      || '';
+    document.getElementById('sp-desc').value      = sp.desc      || '';
+    document.getElementById('sp-price').value     = sp.price     || 15;
+    document.getElementById('sp-emoji').value     = sp.emoji     || '⭐';
+    document.getElementById('sp-available').value = sp.available || 'yes';
+    updateAdminPreview();
+  };
+  document.head.appendChild(s);
   ['sp-name','sp-desc','sp-price','sp-emoji'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', updateAdminPreview);
   });
