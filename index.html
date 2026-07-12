@@ -372,9 +372,8 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 // CONFIGURATION
 // ─────────────────────────────────────────────
 var ADMIN_PASSWORD = 'lillybakes2024';
-var SHEET_ID       = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
-var SHEET_URL      = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=0';
-var MENU_URL       = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=385292145';
+var SHEET_ID  = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
+var MENU_URL  = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/export?format=csv&gid=0';
 
 // Orders now submitted directly to Apps Script Web App (see submitOrder function)
 
@@ -391,44 +390,11 @@ var DEFAULT_SPECIAL = {
 // ─────────────────────────────────────────────
 var PRODUCTS = {};
 
-function loadMenuFromSheet() {
-  var url = 'https://corsproxy.io/?' + encodeURIComponent(MENU_URL + '&nocache=' + Date.now());
-  fetch(url)
-    .then(function(r) { return r.text(); })
-    .then(function(csv) {
-      var lines = csv.trim().split('\n');
-      var menuItems = [];
-      for (var i = 1; i < lines.length; i++) {
-        var line = lines[i].replace(/\r/g, '');
-        var parts = line.split(',');
-        if (parts.length >= 6) {
-          var id        = parts[0].replace(/^"|"$/g,'').trim();
-          var name      = parts[1].replace(/^"|"$/g,'').trim();
-          var desc      = parts.slice(2, parts.length-3).join(',').replace(/^"|"$/g,'').trim();
-          var price     = parseFloat(parts[parts.length-3].replace(/^"|"$/g,'').trim()) || 0;
-          var emoji     = parts[parts.length-2].replace(/^"|"$/g,'').trim();
-          var available = parts[parts.length-1].replace(/^"|"$/g,'').trim().toLowerCase();
-          if (id && name && available !== 'no') {
-            menuItems.push({ id: id, name: name, desc: desc, price: price, emoji: emoji });
-          }
-        }
-      }
-      renderMenu(menuItems);
-    })
-    .catch(function(err) {
-      console.log('Menu fetch failed, using defaults:', err);
-      renderDefaultMenu();
-    });
-}
-
-function renderMenu(items) {
+function renderMenuItems(items) {
   var body = document.getElementById('menu-body');
   if (!body) return;
-  if (!items || items.length === 0) { renderDefaultMenu(); return; }
-
   var html = '';
   items.forEach(function(item, idx) {
-    PRODUCTS[item.id] = { name: item.name, price: item.price };
     var last = (idx === items.length - 1) ? 'style="border-bottom:none;"' : '';
     html +=
       '<div class="product-row" ' + last + '>' +
@@ -448,44 +414,77 @@ function renderMenu(items) {
   body.innerHTML = html;
 }
 
-function renderDefaultMenu() {
-  var defaults = [
-    { id:'plain',    name:'Plain Sourdough',            desc:'Classic slow-fermented loaf — crispy crust, open crumb', price:11, emoji:'🤍' },
-    { id:'jalapeno', name:'Jalapeño Cheddar',           desc:'Loaded with sharp cheddar & roasted jalapeños',          price:15, emoji:'🌶️' },
-    { id:'cinnamon', name:'Cinnamon Sugar',             desc:'Swirled with cinnamon & sugar — perfect toasted',        price:15, emoji:'🍂' },
-    { id:'cookies',  name:'Sourdough Choc Chip Cookies',desc:'½ dozen per order — chewy, tangy, irresistible',         price:10, emoji:'🍫' }
-  ];
-  renderMenu(defaults);
-}
-
 // ─────────────────────────────────────────────
 // LOAD WEEKLY SPECIAL FROM GOOGLE SHEET
 // Uses the public gviz/tq endpoint — no API key needed
 // ─────────────────────────────────────────────
-function loadSpecialFromSheet() {
-  var url = 'https://corsproxy.io/?' + encodeURIComponent(SHEET_URL + '&nocache=' + Date.now());
-  fetch(url)
-    .then(function(r) { return r.text(); })
+function loadMenu() {
+  var url = MENU_URL + '&nocache=' + Date.now();
+  fetch(url, { mode: 'cors', redirect: 'follow' })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.text();
+    })
     .then(function(csv) {
-      var sp = {};
-      var lines = csv.trim().split('\n');
-      for (var i = 0; i < lines.length; i++) {
-        var line = lines[i].replace(/\r/g, '');
-        var parts = line.split(',');
-        if (parts.length >= 2) {
-          var key = parts[0].replace(/^"|"$/g, '').trim().toLowerCase();
-          var val = parts.slice(1).join(',').replace(/^"|"$/g, '').trim();
-          if (key) sp[key] = val;
-        }
-      }
-      window._currentSpecial = sp;
-      if (!sp.name) { renderSpecial(DEFAULT_SPECIAL); return; }
-      renderSpecial(sp);
+      var items = parseMenuCSV(csv);
+      if (!items || items.length === 0) { renderAllFromDefaults(); return; }
+      renderAllFromItems(items);
     })
     .catch(function(err) {
-      console.log('Special fetch failed, using default:', err);
-      renderSpecial(DEFAULT_SPECIAL);
+      console.log('Menu fetch failed, using defaults:', err);
+      renderAllFromDefaults();
     });
+}
+
+function parseMenuCSV(csv) {
+  var items = [];
+  var lines = csv.trim().split('\n');
+  for (var i = 1; i < lines.length; i++) {
+    var line = lines[i].replace(/\r/g, '');
+    // Handle CSV with commas inside quoted fields
+    var parts = [];
+    var inQuote = false;
+    var cur = '';
+    for (var c = 0; c < line.length; c++) {
+      var ch = line[c];
+      if (ch === '"') { inQuote = !inQuote; }
+      else if (ch === ',' && !inQuote) { parts.push(cur); cur = ''; }
+      else { cur += ch; }
+    }
+    parts.push(cur);
+    if (parts.length >= 7) {
+      var id        = parts[0].trim();
+      var name      = parts[1].trim();
+      var desc      = parts[2].trim();
+      var price     = parseFloat(parts[3].trim()) || 0;
+      var emoji     = parts[4].trim();
+      var available = parts[5].trim().toLowerCase();
+      var type      = parts[6].trim().toLowerCase();
+      if (id && name && available !== 'no') {
+        items.push({ id:id, name:name, desc:desc, price:price, emoji:emoji, type:type });
+      }
+    }
+  }
+  return items;
+}
+
+function renderAllFromDefaults() {
+  renderAllFromItems(DEFAULT_MENU);
+}
+
+function renderAllFromItems(items) {
+  var standard = items.filter(function(i) { return i.type === 'standard'; });
+  var special  = items.filter(function(i) { return i.type === 'special'; });
+  renderMenuItems(standard);
+  if (special.length > 0) {
+    renderSpecial(special[0]);
+  } else {
+    document.getElementById('special-card').style.display = 'none';
+  }
+  // Update PRODUCTS for summary calculations
+  items.forEach(function(item) {
+    PRODUCTS[item.id] = { name: item.name, price: item.price };
+  });
 }
 
 function renderSpecial(sp) {
@@ -810,9 +809,7 @@ document.getElementById('admin-overlay').addEventListener('click', function(e){
 // ─────────────────────────────────────────────
 // INIT — load special on page load
 // ─────────────────────────────────────────────
-window._currentSpecial = DEFAULT_SPECIAL;
-loadSpecialFromSheet();
-loadMenuFromSheet();
+loadMenu();
 
 </script>
 </body>
