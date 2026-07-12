@@ -393,9 +393,14 @@ var PRODUCTS = {};
 // LOAD & RENDER MENU FROM LOCALSTORAGE
 // ─────────────────────────────────────────────────────────────
 function loadMenu() {
+  console.log('loadMenu called, URL:', WEB_APP_URL + '?action=getMenu');
   fetch(WEB_APP_URL + '?action=getMenu', { redirect: 'follow' })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      console.log('fetch response status:', r.status, 'ok:', r.ok);
+      return r.json();
+    })
     .then(function(items) {
+      console.log('items received:', items ? items.length : 0, items);
       if (!items || items.length === 0) { renderAllFromItems(DEFAULT_MENU); return; }
       renderAllFromItems(items);
     })
