@@ -375,7 +375,7 @@ var ADMIN_PASSWORD  = 'lillybakes2024';
 var WEB_APP_URL     = 'https://script.google.com/macros/s/AKfycbwJAwk6O_m3qooVLGvbOZS_datDZqP9VWQ4-YInx1Xs-EjfxGFIBXqbWoedrR5RC6hv/exec';
 
 // ─────────────────────────────────────────────────────────────
-// DEFAULT MENU — used if nothing saved in localStorage yet
+// DEFAULT MENU — fallback if Web App unreachable
 // ─────────────────────────────────────────────────────────────
 var DEFAULT_MENU = [
   { id:'plain',    name:'Plain Sourdough',             desc:'Classic slow-fermented loaf — crispy crust, open crumb',        price:11, emoji:'🤍', type:'standard', available:'yes' },
@@ -391,10 +391,17 @@ var PRODUCTS = {};
 // LOAD & RENDER MENU FROM LOCALSTORAGE
 // ─────────────────────────────────────────────────────────────
 function loadMenu() {
-  var saved = null;
-  try { saved = JSON.parse(localStorage.getItem('ll_menu')); } catch(e) {}
-  var items = (saved && saved.length) ? saved : DEFAULT_MENU;
-  renderAllFromItems(items);
+  var url = WEB_APP_URL + '?action=getMenu&nocache=' + Date.now();
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(items) {
+      if (!items || items.length === 0) { renderAllFromItems(DEFAULT_MENU); return; }
+      renderAllFromItems(items);
+    })
+    .catch(function(err) {
+      console.log('Menu fetch failed, using defaults:', err);
+      renderAllFromItems(DEFAULT_MENU);
+    });
 }
 
 function renderAllFromItems(items) {
@@ -700,16 +707,30 @@ function checkAdminPw() {
 }
 
 function populateAdminForm() {
-  var saved = null;
-  try { saved = JSON.parse(localStorage.getItem('ll_menu')); } catch(e) {}
-  var menu = saved || DEFAULT_MENU;
-  var sp = menu.filter(function(i) { return i.type === 'special'; })[0] || DEFAULT_MENU[4];
-  document.getElementById('sp-name').value      = sp.name;
-  document.getElementById('sp-desc').value      = sp.desc;
-  document.getElementById('sp-price').value     = sp.price;
-  document.getElementById('sp-emoji').value     = sp.emoji || '⭐';
-  document.getElementById('sp-available').value = sp.available || 'yes';
-  updateAdminPreview();
+  // Fetch current menu from Sheet to pre-fill the form
+  fetch(WEB_APP_URL + '?action=getMenu&nocache=' + Date.now())
+    .then(function(r) { return r.json(); })
+    .then(function(menu) {
+      var sp = DEFAULT_MENU[4];
+      for (var i = 0; i < menu.length; i++) {
+        if (menu[i].type === 'special') { sp = menu[i]; break; }
+      }
+      document.getElementById('sp-name').value      = sp.name;
+      document.getElementById('sp-desc').value      = sp.desc;
+      document.getElementById('sp-price').value     = sp.price;
+      document.getElementById('sp-emoji').value     = sp.emoji || '⭐';
+      document.getElementById('sp-available').value = sp.available || 'yes';
+      updateAdminPreview();
+    })
+    .catch(function() {
+      var sp = DEFAULT_MENU[4];
+      document.getElementById('sp-name').value      = sp.name;
+      document.getElementById('sp-desc').value      = sp.desc;
+      document.getElementById('sp-price').value     = sp.price;
+      document.getElementById('sp-emoji').value     = sp.emoji || '⭐';
+      document.getElementById('sp-available').value = sp.available || 'yes';
+      updateAdminPreview();
+    });
   ['sp-name','sp-desc','sp-price','sp-emoji'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', updateAdminPreview);
   });
@@ -729,9 +750,7 @@ function updateAdminPreview() {
 }
 
 function saveSpecial() {
-  var saved = null;
-  try { saved = JSON.parse(localStorage.getItem('ll_menu')); } catch(e) {}
-  var menu = saved ? JSON.parse(JSON.stringify(saved)) : JSON.parse(JSON.stringify(DEFAULT_MENU));
+  var menu = JSON.parse(JSON.stringify(DEFAULT_MENU));
 
   // Find and update the special entry
   var found = false;
@@ -758,16 +777,37 @@ function saveSpecial() {
     });
   }
 
-  localStorage.setItem('ll_menu', JSON.stringify(menu));
+  // Save to Google Sheet via Web App
+  var sp = null;
+  for (var i = 0; i < menu.length; i++) {
+    if (menu[i].type === 'special') { sp = menu[i]; break; }
+  }
+  if (!sp) return;
 
-  // Re-render immediately
-  PRODUCTS = {};
-  renderAllFromItems(menu);
+  var params = '?action=saveSpecial' +
+    '&name='      + encodeURIComponent(sp.name) +
+    '&desc='      + encodeURIComponent(sp.desc) +
+    '&price='     + encodeURIComponent(sp.price) +
+    '&emoji='     + encodeURIComponent(sp.emoji) +
+    '&available=' + encodeURIComponent(sp.available);
 
   var msg = document.getElementById('admin-saved');
-  msg.innerHTML = '✅ Weekly special updated!';
+  msg.innerHTML = '⏳ Saving...';
   msg.style.display = 'block';
-  setTimeout(function() { msg.style.display = 'none'; closeAdmin(); }, 2000);
+
+  fetch(WEB_APP_URL + params)
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      // Re-render with updated menu
+      PRODUCTS = {};
+      renderAllFromItems(menu);
+      msg.innerHTML = '✅ Weekly special updated for all devices!';
+      setTimeout(function() { msg.style.display = 'none'; closeAdmin(); }, 2500);
+    })
+    .catch(function(err) {
+      msg.innerHTML = '⚠️ Could not save to sheet. Try again.';
+      console.log('Save error:', err);
+    });
 }
 
 document.getElementById('admin-overlay').addEventListener('click', function(e) {
