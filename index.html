@@ -709,20 +709,21 @@ function submitOrder() {
     payNote + '<br/><br/>Lilly can\'t wait to bake for you! 🍞';
 
   // Submit to Apps Script Web App
+  // Build qty payload dynamically from whatever is in PRODUCTS
   var payload = {
     name: name, phone: phone, email: email,
     address: address, city: city, zip: zip,
-    plain:    parseInt((document.getElementById('plain')    || {value:0}).value || 0),
-    jalapeno: parseInt((document.getElementById('jalapeno') || {value:0}).value || 0),
-    cinnamon: parseInt((document.getElementById('cinnamon') || {value:0}).value || 0),
-    special:  parseInt((document.getElementById('pizza')    || {value:0}).value || 0),
-    cookies:  parseInt((document.getElementById('cookies')  || {value:0}).value || 0),
     total:    '$' + total,
     pickup:   pickupName,
     payment:  (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup',
     orderNum: orderNum,
     notes:    document.getElementById('notes').value || ''
   };
+  // Add each product qty dynamically
+  for (var pid in PRODUCTS) {
+    var el = document.getElementById(pid);
+    payload[pid] = el ? parseInt(el.value || 0) : 0;
+  }
 
   fetch(WEB_APP_URL, {
     method: 'POST',
