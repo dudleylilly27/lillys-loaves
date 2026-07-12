@@ -698,15 +698,15 @@ function submitOrder() {
   document.getElementById('success-body').innerHTML =
     '<div style="background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;">' +
       '<div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:4px;">Your Order Number</div>' +
-      '<div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--crust);font-weight:700;">' + orderNum + '</div>' +
-      '<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">Save this — you'll need it at pickup</div>' +
+      '<div style="font-family:Georgia,serif;font-size:1.4rem;color:var(--crust);font-weight:700;">' + orderNum + '</div>' +
+      '<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">Save this — you\'ll need it at pickup</div>' +
     '</div>' +
     'Thanks <strong>' + name + '</strong>!<br/><br/>' +
     orderLines.join(' &middot; ') +
     '<br/><br/>📍 <strong>Pickup:</strong> ' + pickupLabel +
     '<br/>🏠 ' + address + ', ' + city + ' ' + zip +
     '<br/><br/><strong>Total: $' + total + '</strong><br/><br/>' +
-    payNote + '<br/><br/>Lilly can't wait to bake for you! 🍞';
+    payNote + '<br/><br/>Lilly can\'t wait to bake for you! 🍞';
 
   // Submit to Apps Script Web App
   var payload = {
