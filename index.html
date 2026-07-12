@@ -368,147 +368,98 @@ footer{text-align:center;padding:24px;font-size:.78rem;color:var(--muted)}
 </div>
 
 <script>
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // CONFIGURATION
-// ─────────────────────────────────────────────
-var ADMIN_PASSWORD = 'lillybakes2024';
-var SHEET_ID  = '1jcgFREoN0NtzIZLkyv31PSFddOnPJm58Y-uBw6qHW4k';
-var MENU_URL  = 'https://opensheet.elk.sh/' + SHEET_ID + '/Menu';
+// ─────────────────────────────────────────────────────────────
+var ADMIN_PASSWORD  = 'lillybakes2024';
+var WEB_APP_URL     = 'https://script.google.com/macros/s/AKfycbwJAwk6O_m3qooVLGvbOZS_datDZqP9VWQ4-YInx1Xs-EjfxGFIBXqbWoedrR5RC6hv/exec';
 
-// Orders now submitted directly to Apps Script Web App (see submitOrder function)
+// ─────────────────────────────────────────────────────────────
+// DEFAULT MENU — used if nothing saved in localStorage yet
+// ─────────────────────────────────────────────────────────────
+var DEFAULT_MENU = [
+  { id:'plain',    name:'Plain Sourdough',             desc:'Classic slow-fermented loaf — crispy crust, open crumb',        price:11, emoji:'🤍', type:'standard', available:'yes' },
+  { id:'jalapeno', name:'Jalapeño Cheddar',            desc:'Loaded with sharp cheddar & roasted jalapeños',                 price:15, emoji:'🌶️', type:'standard', available:'yes' },
+  { id:'cinnamon', name:'Cinnamon Sugar',              desc:'Swirled with cinnamon & sugar — perfect toasted',               price:15, emoji:'🍂', type:'standard', available:'yes' },
+  { id:'cookies',  name:'Sourdough Choc Chip Cookies', desc:'½ dozen per order — chewy, tangy, irresistible',               price:10, emoji:'🍫', type:'standard', available:'yes' },
+  { id:'pizza',    name:'Pizza Loaf',                  desc:'Sourdough stuffed with pizza flavors — a weekly crowd favorite',price:15, emoji:'🍕', type:'special',  available:'yes' }
+];
 
-var DEFAULT_SPECIAL = {
-  name: 'Pizza Loaf',
-  desc: 'Sourdough stuffed with pizza flavors — a weekly crowd favorite',
-  price: 15,
-  emoji: '🍕',
-  available: 'yes'
-};
-
-// ─────────────────────────────────────────────
-// PRODUCTS — loaded dynamically from Google Sheet Menu tab
-// ─────────────────────────────────────────────
 var PRODUCTS = {};
 
-function renderMenuItems(items) {
-  var body = document.getElementById('menu-body');
-  if (!body) return;
-  var html = '';
-  items.forEach(function(item, idx) {
-    var last = (idx === items.length - 1) ? 'style="border-bottom:none;"' : '';
-    html +=
-      '<div class="product-row" ' + last + '>' +
-        '<div class="product-emoji">' + (item.emoji || '🍞') + '</div>' +
-        '<div class="product-info">' +
-          '<div class="product-name">' + item.name + '</div>' +
-          '<div class="product-desc">' + item.desc + '</div>' +
-        '</div>' +
-        '<div class="product-price">$' + item.price + ' each</div>' +
-        '<div class="qty-wrap">' +
-          '<button type="button" class="qty-btn" onclick="changeQty(&quot;' + item.id + '&quot;,-1)">−</button>' +
-          '<input class="qty-input" type="number" id="' + item.id + '" value="0" min="0" max="10" readonly/>' +
-          '<button type="button" class="qty-btn" onclick="changeQty(&quot;' + item.id + '&quot;,1)">+</button>' +
-        '</div>' +
-      '</div>';
-  });
-  body.innerHTML = html;
-}
-
-// ─────────────────────────────────────────────
-// LOAD WEEKLY SPECIAL FROM GOOGLE SHEET
-// Uses the public gviz/tq endpoint — no API key needed
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// LOAD & RENDER MENU FROM LOCALSTORAGE
+// ─────────────────────────────────────────────────────────────
 function loadMenu() {
-  var url = MENU_URL + '&nocache=' + Date.now();
-  fetch(url, { mode: 'cors', redirect: 'follow' })
-    .then(function(r) {
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      return r.text();
-    })
-    .then(function(csv) {
-      var items = parseMenuCSV(csv);
-      if (!items || items.length === 0) { renderAllFromDefaults(); return; }
-      renderAllFromItems(items);
-    })
-    .catch(function(err) {
-      console.log('Menu fetch failed, using defaults:', err);
-      renderAllFromDefaults();
-    });
-}
-
-function parseMenuCSV(json) {
-  // opensheet.elk.sh returns a JSON array of objects
-  var items = [];
-  try {
-    var rows = JSON.parse(json);
-    rows.forEach(function(row) {
-      var id        = String(row.id        || '').trim();
-      var name      = String(row.name      || '').trim();
-      var desc      = String(row.desc      || '').trim();
-      var price     = parseFloat(row.price)  || 0;
-      var emoji     = String(row.emoji     || '🍞').trim();
-      var available = String(row.available || 'yes').trim().toLowerCase();
-      var type      = String(row.type      || 'standard').trim().toLowerCase();
-      if (id && name && available !== 'no') {
-        items.push({ id:id, name:name, desc:desc, price:price, emoji:emoji, type:type });
-      }
-    });
-  } catch(e) {
-    console.log('JSON parse error:', e);
-  }
-  return items;
-}
-
-function renderAllFromDefaults() {
-  renderAllFromItems(DEFAULT_MENU);
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('ll_menu')); } catch(e) {}
+  var items = (saved && saved.length) ? saved : DEFAULT_MENU;
+  renderAllFromItems(items);
 }
 
 function renderAllFromItems(items) {
-  var standard = items.filter(function(i) { return i.type === 'standard'; });
+  var standard = items.filter(function(i) { return i.type === 'standard' && i.available !== 'no'; });
   var special  = items.filter(function(i) { return i.type === 'special'; });
-  renderMenuItems(standard);
-  if (special.length > 0) {
-    renderSpecial(special[0]);
-  } else {
-    document.getElementById('special-card').style.display = 'none';
+
+  // Render standard items
+  var body = document.getElementById('menu-body');
+  if (body) {
+    if (standard.length === 0) {
+      body.innerHTML = '<p style="color:var(--muted);font-size:.9rem;padding:8px 0;">No items available this week.</p>';
+    } else {
+      var html = '';
+      standard.forEach(function(item, idx) {
+        PRODUCTS[item.id] = { name: item.name, price: item.price };
+        var last = (idx === standard.length - 1) ? ' style="border-bottom:none;"' : '';
+        html +=
+          '<div class="product-row"' + last + '>' +
+            '<div class="product-emoji">' + (item.emoji || '🍞') + '</div>' +
+            '<div class="product-info">' +
+              '<div class="product-name">' + item.name + '</div>' +
+              '<div class="product-desc">' + item.desc + '</div>' +
+            '</div>' +
+            '<div class="product-price">$' + item.price + ' each</div>' +
+            '<div class="qty-wrap">' +
+              '<button type="button" class="qty-btn" onclick="changeQty('' + item.id + '',-1)">−</button>' +
+              '<input class="qty-input" type="number" id="' + item.id + '" value="0" min="0" max="10" readonly/>' +
+              '<button type="button" class="qty-btn" onclick="changeQty('' + item.id + '',1)">+</button>' +
+            '</div>' +
+          '</div>';
+      });
+      body.innerHTML = html;
+    }
   }
-  // Update PRODUCTS for summary calculations
-  items.forEach(function(item) {
-    PRODUCTS[item.id] = { name: item.name, price: item.price };
-  });
+
+  // Render weekly special
+  var spBody = document.getElementById('special-body');
+  var spCard = document.getElementById('special-card');
+  if (spBody) {
+    if (special.length === 0 || special[0].available === 'no') {
+      spBody.innerHTML = '<div class="special-unavailable">No special this week — check back Saturday! 🍞</div>';
+    } else {
+      var sp = special[0];
+      PRODUCTS[sp.id] = { name: sp.name + ' (Weekly Special)', price: sp.price };
+      spBody.innerHTML =
+        '<div class="product-row" style="border-bottom:none;">' +
+          '<div class="product-emoji">' + (sp.emoji || '⭐') + '</div>' +
+          '<div class="product-info">' +
+            '<div class="product-name">' + sp.name + ' <span class="specialty-tag">This Week</span></div>' +
+            '<div class="product-desc">' + sp.desc + '</div>' +
+          '</div>' +
+          '<div class="product-price">$' + sp.price + ' each</div>' +
+          '<div class="qty-wrap">' +
+            '<button type="button" class="qty-btn" onclick="changeQty('' + sp.id + '',-1)">−</button>' +
+            '<input class="qty-input" type="number" id="' + sp.id + '" value="0" min="0" max="10" readonly/>' +
+            '<button type="button" class="qty-btn" onclick="changeQty('' + sp.id + '',1)">+</button>' +
+          '</div>' +
+        '</div>';
+    }
+  }
 }
 
-function renderSpecial(sp) {
-  var body = document.getElementById('special-body');
-  if (!body) return;
-
-  if (String(sp.available).toLowerCase() === 'no') {
-    body.innerHTML = '<div class="special-unavailable">No special this week — check back Saturday! 🍞</div>';
-    delete PRODUCTS.pizza;
-    return;
-  }
-
-  PRODUCTS.pizza = { name: sp.name + ' (Weekly Special)', price: Number(sp.price) };
-
-  body.innerHTML =
-    '<div class="product-row" style="border-bottom:none;">' +
-      '<div class="product-emoji">' + (sp.emoji || '⭐') + '</div>' +
-      '<div class="product-info">' +
-        '<div class="product-name">' + sp.name + ' <span class="specialty-tag">This Week</span></div>' +
-        '<div class="product-desc">' + sp.desc + '</div>' +
-      '</div>' +
-      '<div class="product-price">$' + sp.price + ' each</div>' +
-      '<div class="qty-wrap">' +
-        '<button type="button" class="qty-btn" onclick="changeQty(\'pizza\',-1)">−</button>' +
-        '<input class="qty-input" type="number" id="pizza" value="0" min="0" max="10" readonly/>' +
-        '<button type="button" class="qty-btn" onclick="changeQty(\'pizza\',1)">+</button>' +
-      '</div>' +
-    '</div>';
-}
-
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // QTY + SUMMARY
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 function changeQty(id, delta) {
   var el = document.getElementById(id);
   if (!el) return;
@@ -539,9 +490,9 @@ function updateSummary() {
   }
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // PICKUP + PAYMENT TOGGLES
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 function onPickupChange() {
   var fg = document.getElementById('fg-pickup');
   if (fg) fg.classList.remove('field-error');
@@ -557,17 +508,14 @@ function onPayMethodChange() {
   if (val !== 'venmo') { var s = document.getElementById('paid'); if (s) s.value = ''; }
 }
 
-// ─────────────────────────────────────────────
-// VALIDATION HELPER
-// ─────────────────────────────────────────────
 function setError(id, show) {
   var fg = document.getElementById('fg-' + id);
   if (fg) fg.classList.toggle('field-error', show);
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // ORDER NUMBER
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 function generateOrderNumber() {
   var now = new Date();
   var d = now.getFullYear().toString() +
@@ -577,30 +525,30 @@ function generateOrderNumber() {
   return 'LL-' + d + '-' + r;
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // SUBMIT
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 function submitOrder() {
   var valid = true;
-  var name    = document.getElementById('name').value.trim();
-  var phone   = document.getElementById('phone').value.trim();
-  var email   = document.getElementById('email').value.trim();
-  var address = document.getElementById('address').value.trim();
-  var city    = document.getElementById('city').value.trim();
-  var zip     = document.getElementById('zip').value.trim();
-  var pEl     = document.querySelector('input[name="pickup"]:checked');
-  var pickup  = pEl ? pEl.value : '';
-  var pmEl    = document.querySelector('input[name="paymethod"]:checked');
+  var name      = document.getElementById('name').value.trim();
+  var phone     = document.getElementById('phone').value.trim();
+  var email     = document.getElementById('email').value.trim();
+  var address   = document.getElementById('address').value.trim();
+  var city      = document.getElementById('city').value.trim();
+  var zip       = document.getElementById('zip').value.trim();
+  var pEl       = document.querySelector('input[name="pickup"]:checked');
+  var pickup    = pEl ? pEl.value : '';
+  var pmEl      = document.querySelector('input[name="paymethod"]:checked');
   var paymethod = pmEl ? pmEl.value : '';
-  var paid    = (paymethod === 'venmo') ? document.getElementById('paid').value : 'cash';
+  var paid      = (paymethod === 'venmo') ? document.getElementById('paid').value : 'cash';
 
-  setError('name',    !name);    if (!name) valid = false;
-  setError('phone',   !phone);   if (!phone) valid = false;
+  setError('name',    !name);    if (!name)    valid = false;
+  setError('phone',   !phone);   if (!phone)   valid = false;
   var badEmail = !email || !/\S+@\S+\.\S+/.test(email);
   setError('email',   badEmail); if (badEmail) valid = false;
   setError('address', !address); if (!address) valid = false;
-  setError('city',    !city);    if (!city) valid = false;
-  setError('zip',     !zip);     if (!zip) valid = false;
+  setError('city',    !city);    if (!city)    valid = false;
+  setError('zip',     !zip);     if (!zip)     valid = false;
 
   if (!pickup) {
     document.getElementById('fg-pickup').classList.add('field-error');
@@ -632,14 +580,24 @@ function submitOrder() {
     var el = document.getElementById(id);
     if (!el) continue;
     var qty = parseInt(el.value || 0);
-    if (qty > 0) { orderLines.push(qty + 'x ' + PRODUCTS[id].name); total += qty * PRODUCTS[id].price; }
+    if (qty > 0) {
+      orderLines.push(qty + 'x ' + PRODUCTS[id].name);
+      total += qty * PRODUCTS[id].price;
+    }
   }
 
   var pickupLabel = (pickup === 'medina')
     ? 'Medina — 4390 Lakeview Glen Dr (~1:00 PM ET)'
     : (pickup === 'marblehead')
     ? 'Marblehead — 2000 Dorchester Dr (~6:00 PM ET)'
-    : 'Ridgewood Stables — 2250 Ridgewood Rd, Medina OH 44256 (~9:00 AM ETrsday)';
+    : (pickup === 'ridgewood')
+    ? 'Ridgewood Stables — 2250 Ridgewood Rd, Medina OH 44256 (~9:00 AM ET)'
+    : 'Milano Monuments — 14600 Brookpark Rd, Cleveland OH 44135 (~1:00 PM ET)';
+
+  var pickupName = (pickup === 'medina') ? 'Medina'
+    : (pickup === 'marblehead') ? 'Marblehead'
+    : (pickup === 'ridgewood')  ? 'Ridgewood Stables'
+    : 'Milano Monuments';
 
   var payNote = (paymethod === 'venmo')
     ? 'Please send <strong>$' + total + '</strong> to <strong>@lillydud</strong> on Venmo — use order number <strong>' + orderNum + '</strong> as your note.'
@@ -648,85 +606,81 @@ function submitOrder() {
   document.getElementById('success-body').innerHTML =
     '<div style="background:var(--warm);border:1.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;">' +
       '<div style="font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:4px;">Your Order Number</div>' +
-      '<div style="font-family:\'Playfair Display\',serif;font-size:1.4rem;color:var(--crust);font-weight:700;">' + orderNum + '</div>' +
-      '<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">Save this — you\'ll need it at pickup</div>' +
+      '<div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--crust);font-weight:700;">' + orderNum + '</div>' +
+      '<div style="font-size:.75rem;color:var(--muted);margin-top:3px;">Save this — you'll need it at pickup</div>' +
     '</div>' +
     'Thanks <strong>' + name + '</strong>!<br/><br/>' +
     orderLines.join(' &middot; ') +
     '<br/><br/>📍 <strong>Pickup:</strong> ' + pickupLabel +
     '<br/>🏠 ' + address + ', ' + city + ' ' + zip +
     '<br/><br/><strong>Total: $' + total + '</strong><br/><br/>' +
-    payNote + '<br/><br/>Lilly can\'t wait to bake for you! 🍞';
+    payNote + '<br/><br/>Lilly can't wait to bake for you! 🍞';
 
-  // Submit directly to Apps Script Web App — writes to Sheet, sends email, updates bake summary
-  var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbwJAwk6O_m3qooVLGvbOZS_datDZqP9VWQ4-YInx1Xs-EjfxGFIBXqbWoedrR5RC6hv/exec';
+  // Submit to Apps Script Web App
   var payload = {
-    name:      name,
-    phone:     phone,
-    email:     email,
-    address:   address,
-    city:      city,
-    zip:       zip,
-    plain:     parseInt(document.getElementById('plain').value    || 0),
-    jalapeno:  parseInt(document.getElementById('jalapeno').value || 0),
-    cinnamon:  parseInt(document.getElementById('cinnamon').value || 0),
-    special:   parseInt((document.getElementById('pizza') || {value:'0'}).value || 0),
-    cookies:   parseInt(document.getElementById('cookies').value  || 0),
-    total:     '$' + total,
-    pickup:    (pickup === 'medina') ? 'Medina' : (pickup === 'marblehead') ? 'Marblehead' : (pickup === 'ridgewood') ? 'Ridgewood Stables' : 'Milano Monuments',
-    payment:   (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup',
-    orderNum:  orderNum,
-    notes:     document.getElementById('notes').value || ''
+    name: name, phone: phone, email: email,
+    address: address, city: city, zip: zip,
+    plain:    parseInt((document.getElementById('plain')    || {value:0}).value || 0),
+    jalapeno: parseInt((document.getElementById('jalapeno') || {value:0}).value || 0),
+    cinnamon: parseInt((document.getElementById('cinnamon') || {value:0}).value || 0),
+    special:  parseInt((document.getElementById('pizza')    || {value:0}).value || 0),
+    cookies:  parseInt((document.getElementById('cookies')  || {value:0}).value || 0),
+    total:    '$' + total,
+    pickup:   pickupName,
+    payment:  (paymethod === 'venmo') ? 'Venmo' : 'Cash at Pickup',
+    orderNum: orderNum,
+    notes:    document.getElementById('notes').value || ''
   };
+
   fetch(WEB_APP_URL, {
     method: 'POST',
     mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
-  }).catch(function(err) { console.log('Submission error:', err); });
+  }).catch(function(err) { console.log('Submit error:', err); });
 
-  // Show success
-  document.querySelectorAll('.card').forEach(function(c){ c.style.display='none'; });
-  document.querySelectorAll('.window-banner').forEach(function(c){ c.style.display='none'; });
+  // Show success screen
+  document.querySelectorAll('.card').forEach(function(c) { c.style.display='none'; });
+  document.querySelectorAll('.window-banner').forEach(function(c) { c.style.display='none'; });
   var sc = document.getElementById('success-card');
   sc.style.display = 'block';
   document.getElementById('success-msg').style.display = 'block';
   sc.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // RESET
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 function resetForm() {
-  ['name','phone','email','address','city','zip','notes'].forEach(function(id){
-    var el = document.getElementById(id); if(el) el.value='';
+  ['name','phone','email','address','city','zip','notes'].forEach(function(id) {
+    var el = document.getElementById(id); if (el) el.value = '';
   });
-  document.getElementById('paid').value = '';
-  document.querySelectorAll('input[name="pickup"]').forEach(function(r){ r.checked=false; });
-  document.querySelectorAll('input[name="paymethod"]').forEach(function(r){ r.checked=false; });
+  var paid = document.getElementById('paid'); if (paid) paid.value = '';
+  document.querySelectorAll('input[name="pickup"]').forEach(function(r)    { r.checked = false; });
+  document.querySelectorAll('input[name="paymethod"]').forEach(function(r) { r.checked = false; });
   document.getElementById('venmo-details').style.display = 'none';
   document.getElementById('cash-details').style.display  = 'none';
   document.getElementById('paymethod-error-msg').style.display = 'none';
   document.getElementById('pickup-error-msg').style.display    = 'none';
-  for (var id in PRODUCTS) { var el=document.getElementById(id); if(el) el.value=0; }
+  for (var id in PRODUCTS) { var el = document.getElementById(id); if (el) el.value = 0; }
   updateSummary();
-  document.querySelectorAll('.card').forEach(function(c){ c.style.display='block'; });
-  document.querySelectorAll('.window-banner').forEach(function(c){ c.style.display='flex'; });
+  document.querySelectorAll('.card').forEach(function(c)        { c.style.display = 'block'; });
+  document.querySelectorAll('.window-banner').forEach(function(c){ c.style.display = 'flex'; });
   document.getElementById('success-card').style.display = 'none';
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 // ADMIN PANEL
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 function openAdmin() {
   document.getElementById('admin-overlay').classList.add('open');
   document.getElementById('admin-pw').value = '';
   document.getElementById('admin-pw-err').style.display = 'none';
-  document.getElementById('admin-login').style.display = 'block';
-  document.getElementById('admin-form').style.display  = 'none';
-  document.getElementById('admin-saved').style.display = 'none';
-  setTimeout(function(){ document.getElementById('admin-pw').focus(); }, 100);
+  document.getElementById('admin-login').style.display  = 'block';
+  document.getElementById('admin-form').style.display   = 'none';
+  document.getElementById('admin-saved').style.display  = 'none';
+  setTimeout(function() { document.getElementById('admin-pw').focus(); }, 100);
 }
 
 function closeAdmin() {
@@ -746,15 +700,17 @@ function checkAdminPw() {
 }
 
 function populateAdminForm() {
-  // Pre-fill with current loaded special if available
-  var sp = window._currentSpecial || DEFAULT_SPECIAL;
-  document.getElementById('sp-name').value      = sp.name      || '';
-  document.getElementById('sp-desc').value      = sp.desc      || '';
-  document.getElementById('sp-price').value     = sp.price     || 15;
-  document.getElementById('sp-emoji').value     = sp.emoji     || '⭐';
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('ll_menu')); } catch(e) {}
+  var menu = saved || DEFAULT_MENU;
+  var sp = menu.filter(function(i) { return i.type === 'special'; })[0] || DEFAULT_MENU[4];
+  document.getElementById('sp-name').value      = sp.name;
+  document.getElementById('sp-desc').value      = sp.desc;
+  document.getElementById('sp-price').value     = sp.price;
+  document.getElementById('sp-emoji').value     = sp.emoji || '⭐';
   document.getElementById('sp-available').value = sp.available || 'yes';
   updateAdminPreview();
-  ['sp-name','sp-desc','sp-price','sp-emoji'].forEach(function(id){
+  ['sp-name','sp-desc','sp-price','sp-emoji'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', updateAdminPreview);
   });
   document.getElementById('sp-available').addEventListener('change', updateAdminPreview);
@@ -773,33 +729,54 @@ function updateAdminPreview() {
 }
 
 function saveSpecial() {
-  var sp = {
-    name:      document.getElementById('sp-name').value.trim()   || 'Weekly Special',
-    desc:      document.getElementById('sp-desc').value.trim()   || '',
-    price:     Number(document.getElementById('sp-price').value) || 15,
-    emoji:     document.getElementById('sp-emoji').value.trim()  || '⭐',
-    available: document.getElementById('sp-available').value
-  };
-  // Show instructions — Google Sheet must be updated manually
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('ll_menu')); } catch(e) {}
+  var menu = saved ? JSON.parse(JSON.stringify(saved)) : JSON.parse(JSON.stringify(DEFAULT_MENU));
+
+  // Find and update the special entry
+  var found = false;
+  for (var i = 0; i < menu.length; i++) {
+    if (menu[i].type === 'special') {
+      menu[i].name      = document.getElementById('sp-name').value.trim()   || 'Weekly Special';
+      menu[i].desc      = document.getElementById('sp-desc').value.trim()   || '';
+      menu[i].price     = Number(document.getElementById('sp-price').value) || 15;
+      menu[i].emoji     = document.getElementById('sp-emoji').value.trim()  || '⭐';
+      menu[i].available = document.getElementById('sp-available').value;
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    menu.push({
+      id: 'pizza',
+      name:      document.getElementById('sp-name').value.trim()   || 'Weekly Special',
+      desc:      document.getElementById('sp-desc').value.trim()   || '',
+      price:     Number(document.getElementById('sp-price').value) || 15,
+      emoji:     document.getElementById('sp-emoji').value.trim()  || '⭐',
+      available: document.getElementById('sp-available').value,
+      type:      'special'
+    });
+  }
+
+  localStorage.setItem('ll_menu', JSON.stringify(menu));
+
+  // Re-render immediately
+  PRODUCTS = {};
+  renderAllFromItems(menu);
+
   var msg = document.getElementById('admin-saved');
-  msg.innerHTML =
-    '✅ To publish this special:<br/>' +
-    '<span style="font-size:.78rem;">Open your <strong>Lilly\'s Weekly Special</strong> Google Sheet and update column B with these values:<br/><br/>' +
-    '<strong>name:</strong> ' + sp.name + '<br/>' +
-    '<strong>desc:</strong> ' + sp.desc + '<br/>' +
-    '<strong>price:</strong> ' + sp.price + '<br/>' +
-    '<strong>emoji:</strong> ' + sp.emoji + '<br/>' +
-    '<strong>available:</strong> ' + sp.available + '</span>';
+  msg.innerHTML = '✅ Weekly special updated!';
   msg.style.display = 'block';
+  setTimeout(function() { msg.style.display = 'none'; closeAdmin(); }, 2000);
 }
 
-document.getElementById('admin-overlay').addEventListener('click', function(e){
+document.getElementById('admin-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeAdmin();
 });
 
-// ─────────────────────────────────────────────
-// INIT — load special on page load
-// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────
 loadMenu();
 
 </script>
