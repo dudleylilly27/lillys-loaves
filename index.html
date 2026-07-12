@@ -393,49 +393,24 @@ var PRODUCTS = {};
 // LOAD & RENDER MENU FROM LOCALSTORAGE
 // ─────────────────────────────────────────────────────────────
 function loadMenu() {
-  // Intercept google.visualization.Query.setResponse which is what
-  // Google actually calls when no custom responseHandler is specified
-  if (!window.google) window.google = {};
-  if (!window.google.visualization) window.google.visualization = {};
-  if (!window.google.visualization.Query) window.google.visualization.Query = {};
-
-  window.google.visualization.Query.setResponse = function(data) {
+  // Use JSONP via Apps Script Web App — bypasses CORS completely
+  window._menuJSONP = function(items) {
     try {
-      var rows = data.table.rows;
-      var cols = data.table.cols;
-      var items = [];
-      rows.forEach(function(row) {
-        var item = {};
-        cols.forEach(function(col, i) {
-          item[col.label.toLowerCase()] = row.c[i] ? String(row.c[i].v || '') : '';
-        });
-        if (item.id && item.name && item.available !== 'no') {
-          item.price = parseFloat(item.price) || 0;
-          items.push(item);
-        }
-      });
-      if (items.length === 0) { renderAllFromItems(DEFAULT_MENU); return; }
+      if (!items || items.length === 0) { renderAllFromItems(DEFAULT_MENU); return; }
       renderAllFromItems(items);
     } catch(e) {
-      console.log('Menu parse error:', e);
       renderAllFromItems(DEFAULT_MENU);
     }
   };
 
-  // Timeout fallback
   var timeout = setTimeout(function() {
-    console.log('Menu load timed out, using defaults');
     renderAllFromItems(DEFAULT_MENU);
-  }, 6000);
+  }, 8000);
 
   var script = document.createElement('script');
-  script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-    '/gviz/tq?tqx=out:json&gid=0';
+  script.src = WEB_APP_URL + '?action=getMenu&callback=_menuJSONP';
   script.onload = function() { clearTimeout(timeout); };
-  script.onerror = function() {
-    clearTimeout(timeout);
-    renderAllFromItems(DEFAULT_MENU);
-  };
+  script.onerror = function() { clearTimeout(timeout); renderAllFromItems(DEFAULT_MENU); };
   document.head.appendChild(script);
 }
 
