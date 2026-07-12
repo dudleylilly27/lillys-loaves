@@ -425,12 +425,11 @@ function loadMenu() {
 
   var script = document.createElement('script');
   script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-    '/gviz/tq?tqx=out:json%3BresponseHandler%3D_menuCallback&sheet=Menu';
+    '/gviz/tq?tqx=out:json;responseHandler:_menuCallback&gid=0';
   script.onerror = function() {
     clearTimeout(timeout);
     renderAllFromItems(DEFAULT_MENU);
   };
-  script.onload = function() { clearTimeout(timeout); };
   document.head.appendChild(script);
 }
 
@@ -839,7 +838,7 @@ function populateAdminForm() {
   };
   var s = document.createElement('script');
   s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-    '/gviz/tq?tqx=out:json%3BresponseHandler%3D_adminMenuCallback&sheet=Menu';
+    '/gviz/tq?tqx=out:json;responseHandler:_adminMenuCallback&gid=0';
   s.onerror = function() {
     document.getElementById('sp-name').value      = sp.name      || '';
     document.getElementById('sp-desc').value      = sp.desc      || '';
